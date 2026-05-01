@@ -13,8 +13,8 @@
     }
 
     h1 {
-      color: red;
       text-align: center;
+      color: red;
     }
 
     .grid {
@@ -28,7 +28,6 @@
     .card {
       width: 150px;
       cursor: pointer;
-      transition: 0.3s;
       text-align: center;
     }
 
@@ -37,40 +36,9 @@
       border-radius: 10px;
     }
 
-    .card:hover {
-      transform: scale(1.05);
-    }
-
     #player {
       text-align: center;
       margin: 20px;
-    }
-
-    input, textarea, select {
-      display: block;
-      margin: 10px auto;
-      padding: 10px;
-      width: 250px;
-    }
-
-    button {
-      padding: 10px;
-      background: red;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-
-    #adminPanel {
-      display: none;
-      border-top: 1px solid #333;
-      margin-top: 20px;
-      padding-top: 20px;
-      text-align: center;
-    }
-
-    #login {
-      text-align: center;
     }
   </style>
 </head>
@@ -79,77 +47,26 @@
 
 <h1>STREAMFLIX 🎬</h1>
 
-<!-- PLAYER -->
 <div id="player"></div>
-
-<!-- CATÁLOGO -->
 <div id="catalogo" class="grid"></div>
-
-<!-- LOGIN -->
-<div id="login">
-  <h2>Login ADM</h2>
-  <input id="user" placeholder="Usuário">
-  <input id="pass" type="password" placeholder="Senha">
-  <button onclick="login()">Entrar</button>
-</div>
-
-<!-- ADMIN -->
-<div id="adminPanel">
-  <h2>PAINEL ADM</h2>
-
-  <input id="title" placeholder="Título">
-  <input id="cover" placeholder="URL da capa">
-  <textarea id="desc" placeholder="Sinopse"></textarea>
-  <input id="video" placeholder="Link do vídeo">
-
-  <select id="type">
-    <option value="youtube">YouTube</option>
-    <option value="drive">Drive</option>
-    <option value="mp4">MP4</option>
-  </select>
-
-  <button onclick="salvar()">Salvar</button>
-</div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  const firebaseConfig = {
+  const app = initializeApp({
     apiKey: "AIzaSyBkpOKakidlZ2WVZNBI9oEFHEjs1EqCt78",
     authDomain: "streamflix-62461.firebaseapp.com",
     projectId: "streamflix-62461"
-  };
+  });
 
-  const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
   const catalogo = document.getElementById("catalogo");
   const player = document.getElementById("player");
 
-  // LOGIN
-  window.login = function () {
-    const user = document.getElementById("user").value;
-    const pass = document.getElementById("pass").value;
-
-    if (user === "marco" && pass === "22510827") {
-      document.getElementById("adminPanel").style.display = "block";
-      alert("Logado!");
-    } else {
-      alert("Login errado");
-    }
-  };
-
-  // CARREGAR CATÁLOGO
   async function carregar() {
-    catalogo.innerHTML = "";
-
     const snap = await getDocs(collection(db, "movies"));
-
-    if (snap.empty) {
-      catalogo.innerHTML = "<p>Nenhum filme ainda...</p>";
-      return;
-    }
 
     snap.forEach(doc => {
       const m = doc.data();
@@ -168,14 +85,13 @@
     });
   }
 
-  // PLAYER
   function assistir(url, type) {
-    if (type === "mp4") {
-      player.innerHTML = `<video controls width="80%"><source src="${url}"></video>`;
-    }
-
     if (type === "youtube") {
       player.innerHTML = `<iframe width="80%" height="400" src="https://www.youtube.com/embed/${url}" allowfullscreen></iframe>`;
+    }
+
+    if (type === "mp4") {
+      player.innerHTML = `<video controls width="80%"><source src="${url}"></video>`;
     }
 
     if (type === "drive") {
@@ -184,20 +100,6 @@
 
     window.scrollTo(0, 0);
   }
-
-  // SALVAR
-  window.salvar = async function () {
-    await addDoc(collection(db, "movies"), {
-      title: document.getElementById("title").value,
-      cover: document.getElementById("cover").value,
-      description: document.getElementById("desc").value,
-      videoUrl: document.getElementById("video").value,
-      videoType: document.getElementById("type").value
-    });
-
-    alert("Salvo!");
-    carregar();
-  };
 
   carregar();
 </script>
