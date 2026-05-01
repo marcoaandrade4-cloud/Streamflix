@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Série</title>
+
+<style>
+body{background:#000;color:white;font-family:Arial;}
+button{padding:10px;margin:5px;}
+</style>
+</head>
+
+<body>
+
+<h1 id="title"></h1>
+
+<div id="temporadas"></div>
+<div id="episodios"></div>
+<div id="player"></div>
+
+<script>
+const data = JSON.parse(localStorage.getItem("serie"));
+
+title.innerText = data.title;
+
+data.seasons.forEach((s,i)=>{
+ const btn=document.createElement("button");
+ btn.innerText="Temporada "+(i+1);
+ btn.onclick=()=>mostrarEp(s);
+ temporadas.appendChild(btn);
+});
+
+function mostrarEp(season){
+ episodios.innerHTML="";
+ season.episodes.forEach(ep=>{
+  const btn=document.createElement("button");
+  btn.innerText=ep.title;
+  btn.onclick=()=>idioma(ep.languages);
+  episodios.appendChild(btn);
+ });
+}
+
+function idioma(langs){
+ episodios.innerHTML="";
+ langs.forEach(l=>{
+  const btn=document.createElement("button");
+  btn.innerText=l.lang;
+  btn.onclick=()=>play(l.url,l.type);
+  episodios.appendChild(btn);
+ });
+}
+
+function play(url,type){
+ if(type==="youtube"){
+  player.innerHTML=`<iframe width="90%" height="400" src="https://www.youtube.com/embed/${url}"></iframe>`;
+ }
+}
+</script>
+
+</body>
+</html>
