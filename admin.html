@@ -6,20 +6,16 @@
 
 <style>
 body{background:#0e0e0e;color:#fff;font-family:Arial;margin:0;padding:10px}
-h1,h2,h3{margin:10px 0}
 input,textarea,select{
-  display:block;margin:6px 0;padding:8px;width:100%;max-width:420px
+  display:block;margin:5px 0;padding:8px;width:100%;max-width:400px
 }
-button{padding:8px 12px;margin:6px 4px;border:none;background:#00ff66;color:#000;cursor:pointer}
-.danger{background:#ff4d4d;color:#fff}
-.row{display:flex;flex-wrap:wrap;gap:10px}
-.box{border:1px solid #333;border-radius:8px;padding:10px;margin:10px 0}
-.small{font-size:12px;color:#bbb}
+button{
+  padding:8px;margin:5px;border:none;background:#00ff66;cursor:pointer
+}
+.danger{background:red;color:#fff}
+.box{border:1px solid #333;padding:10px;margin:10px 0}
 #panel{display:none}
 #loginBox{display:none}
-.listItem{border:1px solid #333;border-radius:8px;padding:10px;margin:10px 0}
-.flex{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-hr{border-color:#333}
 </style>
 </head>
 
@@ -29,7 +25,7 @@ hr{border-color:#333}
 
 <button onclick="toggleLogin()">Entrar ADM</button>
 
-<div id="loginBox" class="box">
+<div id="loginBox">
   <input id="user" placeholder="Usuário">
   <input id="pass" type="password" placeholder="Senha">
   <button onclick="login()">Login</button>
@@ -37,253 +33,253 @@ hr{border-color:#333}
 
 <div id="panel">
 
-  <h2>➕ Criar / ✏️ Editar</h2>
+<h2>Criar / Editar</h2>
 
-  <div class="row">
-    <select id="tipo">
-      <option value="filme">Filme</option>
-      <option value="serie">Série</option>
-    </select>
+<select id="tipo">
+  <option value="filme">Filme</option>
+  <option value="serie">Série</option>
+</select>
 
-    <input id="title" placeholder="Título">
-    <input id="cover" placeholder="URL da capa">
-    <input id="year" placeholder="Ano">
-  </div>
+<input id="title" placeholder="Título">
+<input id="cover" placeholder="Capa (URL)">
+<input id="year" placeholder="Ano">
+<textarea id="desc" placeholder="Sinopse"></textarea>
 
-  <textarea id="desc" placeholder="Sinopse"></textarea>
+<!-- FILME -->
+<div id="filmeBox" class="box">
+<h3>Idiomas (Filme)</h3>
+<button onclick="addLangFilme()">+ Idioma</button>
+<div id="filmeLangs"></div>
+</div>
 
-  <!-- FILME -->
-  <div id="filmeBox" class="box">
-    <h3>Filme → Idiomas</h3>
-    <button onclick="addLangFilme()">+ Idioma</button>
-    <div id="filmeLangs"></div>
-  </div>
+<!-- SERIE -->
+<div id="serieBox" class="box">
+<h3>Série</h3>
+<button onclick="addSeason()">+ Temporada</button>
+<div id="seasons"></div>
+</div>
 
-  <!-- SÉRIE -->
-  <div id="serieBox" class="box">
-    <h3>Série</h3>
-    <button onclick="addSeason()">+ Temporada</button>
-    <div id="seasons"></div>
-  </div>
+<button onclick="salvar()">💾 Salvar</button>
+<button class="danger" onclick="reset()">Cancelar</button>
 
-  <div class="flex">
-    <button onclick="salvar()">💾 Salvar</button>
-    <button class="danger" onclick="cancelarEdicao()">Cancelar edição</button>
-  </div>
+<hr>
 
-  <hr>
-
-  <h2>📄 Conteúdos</h2>
-  <div id="lista"></div>
+<h2>Conteúdos</h2>
+<div id="lista"></div>
 
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc
+ getFirestore, collection, getDocs,
+ addDoc, updateDoc, deleteDoc, doc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const app = initializeApp({
-  apiKey:"AIzaSyBkpOKakidlZ2WVZNBI9oEFHEjs1EqCt78",
-  projectId:"streamflix-62461"
+ apiKey:"AIzaSyBkpOKakidlZ2WVZNBI9oEFHEjs1EqCt78",
+ projectId:"streamflix-62461"
 });
 const db = getFirestore(app);
 
-// ====== ESTADO ======
-let editId = null;
-let seasons = [];        // para série
-let filmeLangs = [];     // para filme
+// ESTADO
+let editId=null;
+let seasons=[];
+let filmeLangs=[];
 
-// ====== LOGIN ======
-window.toggleLogin = ()=> {
-  loginBox.style.display = loginBox.style.display === "none" ? "block" : "none";
+// LOGIN
+window.toggleLogin=()=>{
+ loginBox.style.display =
+  loginBox.style.display==="none"?"block":"none";
 };
 
-window.login = ()=> {
-  if(user.value==="marco" && pass.value==="22510827"){
-    panel.style.display="block";
-    loginBox.style.display="none";
-    carregarLista();
-    atualizarTipoUI();
-  } else {
-    alert("Login errado");
-  }
+window.login=()=>{
+ if(user.value==="marco" && pass.value==="22510827"){
+  panel.style.display="block";
+  loginBox.style.display="none";
+  carregarLista();
+  atualizarUI();
+ } else alert("Login errado");
 };
 
-// ====== UI TIPO ======
-tipo.onchange = atualizarTipoUI;
-function atualizarTipoUI(){
-  if(tipo.value === "filme"){
-    filmeBox.style.display = "block";
-    serieBox.style.display = "none";
-  } else {
-    filmeBox.style.display = "none";
-    serieBox.style.display = "block";
-  }
+// TIPO
+tipo.onchange=atualizarUI;
+
+function atualizarUI(){
+ if(tipo.value==="filme"){
+  filmeBox.style.display="block";
+  serieBox.style.display="none";
+ }else{
+  filmeBox.style.display="none";
+  serieBox.style.display="block";
+ }
 }
 
-// ====== FILME LANGS ======
-window.addLangFilme = ()=>{
-  filmeLangs.push({lang:"PT-BR", url:"", type:"youtube"});
-  renderFilmeLangs();
+// FILME
+window.addLangFilme=()=>{
+ filmeLangs.push({lang:"PT-BR",url:"",type:"youtube"});
+ renderFilme();
 };
 
-function renderFilmeLangs(){
-  filmeLangsDiv = document.getElementById("filmeLangs");
-  filmeLangsDiv.innerHTML = "";
-
-  filmeLangs.forEach((l,i)=>{
-    filmeLangsDiv.innerHTML += `
-      <div class="box">
-        <input value="${l.lang}" onchange="filmeLangs[${i}].lang=this.value">
-        <input value="${l.url}" placeholder="URL" onchange="filmeLangs[${i}].url=this.value">
-        <select onchange="filmeLangs[${i}].type=this.value">
-          <option ${l.type==='youtube'?'selected':''}>youtube</option>
-          <option ${l.type==='mp4'?'selected':''}>mp4</option>
-          <option ${l.type==='drive'?'selected':''}>drive</option>
-        </select>
-      </div>
-    `;
-  });
+function renderFilme(){
+ filmeLangsDiv.innerHTML="";
+ filmeLangs.forEach((l,i)=>{
+  filmeLangsDiv.innerHTML+=`
+  <div class="box">
+    <input value="${l.lang}" onchange="filmeLangs[${i}].lang=this.value">
+    <input value="${l.url}" onchange="filmeLangs[${i}].url=this.value">
+    <select onchange="filmeLangs[${i}].type=this.value">
+      <option ${l.type==='youtube'?'selected':''}>youtube</option>
+      <option ${l.type==='mp4'?'selected':''}>mp4</option>
+      <option ${l.type==='drive'?'selected':''}>drive</option>
+    </select>
+  </div>`;
+ });
 }
 
-// ====== SÉRIE ======
-window.addSeason = ()=>{
-  seasons.push({episodes:[]});
-  renderSeasons();
+// SERIE
+window.addSeason=()=>{
+ seasons.push({episodes:[]});
+ renderSeasons();
 };
 
-window.addEpisode = (si)=>{
-  seasons[si].episodes.push({title:"Novo episódio", languages:[]});
-  renderSeasons();
+window.addEpisode=(si)=>{
+ seasons[si].episodes.push({title:"Ep",languages:[]});
+ renderSeasons();
 };
 
-window.addLang = (si,ei)=>{
-  seasons[si].episodes[ei].languages.push({lang:"PT-BR", url:"", type:"youtube"});
-  renderSeasons();
+window.addLang=(si,ei)=>{
+ seasons[si].episodes[ei].languages.push({lang:"PT-BR",url:"",type:"youtube"});
+ renderSeasons();
 };
 
 function renderSeasons(){
-  const div = document.getElementById("seasons");
-  div.innerHTML = "";
+ seasonsDiv.innerHTML="";
+ seasons.forEach((s,si)=>{
+  let html=`<div class="box">
+  <h3>Temporada ${si+1}</h3>
+  <button onclick="addEpisode(${si})">+ Episódio</button>`;
 
-  seasons.forEach((s,si)=>{
-    let html = `<div class="box">
-      <h3>Temporada ${si+1}</h3>
-      <button onclick="addEpisode(${si})">+ Episódio</button>
-    `;
+  s.episodes.forEach((ep,ei)=>{
+    html+=`<div class="box">
+    <input value="${ep.title}" onchange="seasons[${si}].episodes[${ei}].title=this.value">
+    <button onclick="addLang(${si},${ei})">+ Idioma</button>`;
 
-    s.episodes.forEach((ep,ei)=>{
-      html += `<div class="box">
-        <input value="${ep.title}" onchange="seasons[${si}].episodes[${ei}].title=this.value">
-        <button onclick="addLang(${si},${ei})">+ Idioma</button>
-      `;
-
-      ep.languages.forEach((l,li)=>{
-        html += `
-          <input value="${l.lang}" onchange="seasons[${si}].episodes[${ei}].languages[${li}].lang=this.value">
-          <input value="${l.url}" onchange="seasons[${si}].episodes[${ei}].languages[${li}].url=this.value">
-        `;
-      });
-
-      html += `</div>`;
+    ep.languages.forEach((l,li)=>{
+      html+=`
+      <input value="${l.lang}" onchange="seasons[${si}].episodes[${ei}].languages[${li}].lang=this.value">
+      <input value="${l.url}" onchange="seasons[${si}].episodes[${ei}].languages[${li}].url=this.value">`;
     });
 
-    html += `</div>`;
-    div.innerHTML += html;
+    html+=`</div>`;
   });
+
+  html+=`</div>`;
+  seasonsDiv.innerHTML+=html;
+ });
 }
 
-// ====== CRUD ======
-window.salvar = async ()=>{
-  const data = {
-    type: tipo.value,
-    title: title.value,
-    cover: cover.value,
-    year: year.value,
-    description: desc.value
-  };
+// SALVAR
+window.salvar=async()=>{
+ const data={
+  type:tipo.value,
+  title:title.value,
+  cover:cover.value,
+  year:year.value,
+  description:desc.value
+ };
 
-  if(tipo.value==="filme"){
-    data.languages = filmeLangs;
-    data.seasons = [];
-  } else {
-    data.seasons = seasons;
-    data.languages = [];
+ if(tipo.value==="filme"){
+  data.languages=filmeLangs;
+  data.seasons=[];
+ }else{
+  data.seasons=seasons;
+  data.languages=[];
+ }
+
+ if(editId){
+  await updateDoc(doc(db,"conteudos",editId),data);
+  alert("Atualizado");
+ }else{
+  await addDoc(collection(db,"conteudos"),data);
+  alert("Criado");
+ }
+
+ reset();
+ carregarLista();
+};
+
+// EDITAR
+window.editar=async(id)=>{
+ const snap=await getDocs(collection(db,"conteudos"));
+
+ snap.forEach(d=>{
+  if(d.id===id){
+   const c=d.data();
+
+   editId=id;
+   tipo.value=c.type;
+   title.value=c.title;
+   cover.value=c.cover;
+   year.value=c.year;
+   desc.value=c.description;
+
+   if(c.type==="filme"){
+    filmeLangs=c.languages||[];
+    renderFilme();
+   }else{
+    seasons=c.seasons||[];
+    renderSeasons();
+   }
+
+   atualizarUI();
   }
+ });
+};
 
-  if(editId){
-    await updateDoc(doc(db,"conteudos",editId), data);
-    alert("Atualizado!");
-  } else {
-    await addDoc(collection(db,"conteudos"), data);
-    alert("Criado!");
-  }
-
-  reset();
+// DELETAR
+window.deletar=async(id)=>{
+ if(confirm("Excluir?")){
+  await deleteDoc(doc(db,"conteudos",id));
   carregarLista();
+ }
 };
 
-window.editar = async (id)=>{
-  const snap = await getDocs(collection(db,"conteudos"));
-  snap.forEach(d=>{
-    if(d.id===id){
-      const c = d.data();
+// LISTA
+async function carregarLista(){
+ lista.innerHTML="";
 
-      editId = id;
-      tipo.value = c.type;
-      title.value = c.title;
-      cover.value = c.cover;
-      year.value = c.year;
-      desc.value = c.description;
+ const snap=await getDocs(collection(db,"conteudos"));
 
-      if(c.type==="filme"){
-        filmeLangs = c.languages || [];
-        renderFilmeLangs();
-      } else {
-        seasons = c.seasons || [];
-        renderSeasons();
-      }
+ if(snap.empty){
+  lista.innerHTML="<p>Sem conteúdo</p>";
+  return;
+ }
 
-      atualizarTipoUI();
-    }
-  });
-};
+ snap.forEach(d=>{
+  const c=d.data();
 
-window.deletar = async (id)=>{
-  if(confirm("Excluir?")){
-    await deleteDoc(doc(db,"conteudos",id));
-    carregarLista();
-  }
-};
-
-function reset(){
-  editId=null;
-  title.value="";cover.value="";year.value="";desc.value="";
-  seasons=[];filmeLangs=[];
-  renderSeasons();renderFilmeLangs();
+  lista.innerHTML+=`
+  <div class="box">
+    <b>${c.title}</b> (${c.type})
+    <br>
+    <button onclick="editar('${d.id}')">Editar</button>
+    <button class="danger" onclick="deletar('${d.id}')">Excluir</button>
+  </div>`;
+ });
 }
 
-window.cancelarEdicao = reset;
-
-// ====== LISTA ======
-async function carregarLista(){
-  lista.innerHTML = "";
-  const snap = await getDocs(collection(db,"conteudos"));
-
-  snap.forEach(d=>{
-    const c = d.data();
-
-    lista.innerHTML += `
-      <div class="listItem">
-        <b>${c.title}</b> (${c.type})<br>
-        <span class="small">${c.year||""}</span><br>
-        <button onclick="editar('${d.id}')">Editar</button>
-        <button class="danger" onclick="deletar('${d.id}')">Excluir</button>
-      </div>
-    `;
-  });
+// RESET
+function reset(){
+ editId=null;
+ title.value="";
+ cover.value="";
+ year.value="";
+ desc.value="";
+ seasons=[];
+ filmeLangs=[];
+ renderSeasons();
+ renderFilme();
 }
 </script>
 
