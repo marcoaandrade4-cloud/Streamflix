@@ -1,37 +1,27 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Série</title>
-
-<style>
-body{background:#000;color:white;font-family:Arial;}
-button{padding:10px;margin:5px;}
-</style>
-</head>
-
-<body>
-
-<h1 id="title"></h1>
-
-<div id="temporadas"></div>
-<div id="episodios"></div>
-<div id="player"></div>
-
 <script>
 const data = JSON.parse(localStorage.getItem("serie"));
 
 title.innerText = data.title;
 
-data.seasons.forEach((s,i)=>{
- const btn=document.createElement("button");
- btn.innerText="Temporada "+(i+1);
- btn.onclick=()=>mostrarEp(s);
- temporadas.appendChild(btn);
-});
+if(!data.seasons || data.seasons.length === 0){
+  temporadas.innerHTML = "<p>Sem temporadas ainda...</p>";
+} else {
+  data.seasons.forEach((s,i)=>{
+    const btn=document.createElement("button");
+    btn.innerText="Temporada "+(i+1);
+    btn.onclick=()=>mostrarEp(s);
+    temporadas.appendChild(btn);
+  });
+}
 
 function mostrarEp(season){
+ if(!season.episodes || season.episodes.length === 0){
+   episodios.innerHTML = "<p>Sem episódios...</p>";
+   return;
+ }
+
  episodios.innerHTML="";
+
  season.episodes.forEach(ep=>{
   const btn=document.createElement("button");
   btn.innerText=ep.title;
@@ -41,7 +31,13 @@ function mostrarEp(season){
 }
 
 function idioma(langs){
+ if(!langs || langs.length === 0){
+   episodios.innerHTML = "<p>Sem idioma...</p>";
+   return;
+ }
+
  episodios.innerHTML="";
+
  langs.forEach(l=>{
   const btn=document.createElement("button");
   btn.innerText=l.lang;
@@ -56,6 +52,3 @@ function play(url,type){
  }
 }
 </script>
-
-</body>
-</html>
