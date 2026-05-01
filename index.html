@@ -5,29 +5,101 @@
 <title>StreamFlix</title>
 
 <style>
-body{background:#0b0f0b;color:white;font-family:Arial;margin:0;}
-.header{display:flex;justify-content:space-between;padding:10px;background:#111;}
-.logo{color:#00ff66;font-weight:bold;}
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:15px;padding:10px;}
-.card{background:#111;border-radius:10px;overflow:hidden;cursor:pointer;}
-.card img{width:100%;}
-.card p{text-align:center;}
+body{
+  margin:0;
+  font-family:Arial;
+  background:#000;
+  color:#fff;
+}
+
+/* NAVBAR */
+.nav{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:10px;
+  background:#0b0b0b;
+  border-bottom:2px solid #00ff66;
+}
+
+.logo{
+  color:#00ff66;
+  font-weight:bold;
+  font-size:18px;
+}
+
+.nav button{
+  background:#00ff66;
+  border:none;
+  padding:8px 12px;
+  border-radius:10px;
+}
+
+/* DESTAQUE */
+.banner{
+  background:#0f1f14;
+  margin:15px;
+  padding:20px;
+  border-radius:15px;
+  text-align:center;
+}
+
+.banner button{
+  background:#00ff66;
+  border:none;
+  padding:10px 20px;
+  border-radius:10px;
+  margin-top:10px;
+}
+
+/* GRID */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:15px;
+  padding:15px;
+}
+
+.card{
+  text-align:center;
+}
+
+.card img{
+  width:100%;
+  border-radius:15px;
+}
+
+.card p{
+  margin-top:5px;
+}
 </style>
 </head>
 
 <body>
 
-<div class="header">
+<!-- NAV -->
+<div class="nav">
   <div class="logo">🐾 StreamFlix</div>
-  <button onclick="location='admin.html'">ADM</button>
+  <button onclick="abrirADM()">ADM</button>
 </div>
 
-<h2 style="padding:10px;">Séries</h2>
-<div id="catalogo" class="grid"></div>
+<!-- DESTAQUE -->
+<div class="banner">
+  <h2>Novo episódio!</h2>
+  <p>Disponível agora</p>
+  <button>▶ Assistir</button>
+</div>
+
+<h2 style="text-align:center;">Bem-vindo!</h2>
+
+<!-- GRID -->
+<div class="grid" id="grid"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+ getFirestore, collection, getDocs
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const app = initializeApp({
  apiKey:"AIzaSyBkpOKakidlZ2WVZNBI9oEFHEjs1EqCt78",
@@ -36,13 +108,15 @@ const app = initializeApp({
 
 const db = getFirestore(app);
 
+const grid = document.getElementById("grid");
+
 async function carregar(){
  const snap = await getDocs(collection(db,"conteudos"));
 
  snap.forEach(doc=>{
   const c = doc.data();
 
-  const div=document.createElement("div");
+  const div = document.createElement("div");
   div.className="card";
 
   div.innerHTML=`
@@ -51,15 +125,19 @@ async function carregar(){
   `;
 
   div.onclick=()=>{
-    localStorage.setItem("serie",JSON.stringify(c));
-    location="serie.html";
+    localStorage.setItem("serie", JSON.stringify(c));
+    window.location="serie.html";
   };
 
-  catalogo.appendChild(div);
+  grid.appendChild(div);
  });
 }
 
 carregar();
+
+window.abrirADM=()=>{
+ location.href="admin.html";
+};
 </script>
 
 </body>
