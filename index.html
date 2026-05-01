@@ -4,34 +4,29 @@
   <meta charset="UTF-8">
   <title>StreamFlix</title>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
-
   <style>
     body {
       margin: 0;
       background: #0f0f0f;
       color: white;
       font-family: Arial;
-    }
-
-    h1 {
-      color: red;
       text-align: center;
     }
+
+    h1 { color: red; }
 
     .grid {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
-      padding: 10px;
       justify-content: center;
+      padding: 10px;
     }
 
     .card {
       width: 150px;
       cursor: pointer;
+      transition: 0.3s;
     }
 
     .card img {
@@ -43,17 +38,11 @@
       transform: scale(1.05);
     }
 
-    .player {
-      display: none;
-      text-align: center;
-      padding: 20px;
-    }
-
     input, textarea, select {
       display: block;
       margin: 10px auto;
       padding: 10px;
-      width: 300px;
+      width: 250px;
     }
 
     button {
@@ -63,6 +52,10 @@
       border: none;
       cursor: pointer;
     }
+
+    #adminPanel {
+      display: none;
+    }
   </style>
 </head>
 
@@ -70,84 +63,91 @@
 
 <h1>STREAMFLIX 🎬</h1>
 
+<!-- LOGIN -->
+<div id="login">
+  <h2>Login ADM</h2>
+  <input id="user" placeholder="Usuário">
+  <input id="pass" type="password" placeholder="Senha">
+  <button onclick="login()">Entrar</button>
+</div>
+
 <!-- CATÁLOGO -->
 <div id="catalogo" class="grid"></div>
 
 <!-- PLAYER -->
-<div id="player" class="player"></div>
+<div id="player"></div>
 
-<hr>
+<!-- ADMIN -->
+<div id="adminPanel">
+  <h2>PAINEL ADM</h2>
 
-<h2 style="text-align:center;">PAINEL ADM</h2>
+  <input id="title" placeholder="Título">
+  <input id="cover" placeholder="URL da capa">
+  <textarea id="desc" placeholder="Sinopse"></textarea>
+  <input id="video" placeholder="Link do vídeo">
 
-<input id="title" placeholder="Título">
-<input id="cover" placeholder="URL da capa">
-<textarea id="desc" placeholder="Sinopse"></textarea>
-<input id="video" placeholder="Link do vídeo">
+  <select id="type">
+    <option value="youtube">YouTube</option>
+    <option value="drive">Drive</option>
+    <option value="mp4">MP4</option>
+  </select>
 
-<select id="type">
-  <option value="youtube">YouTube</option>
-  <option value="drive">Drive</option>
-  <option value="mp4">MP4</option>
-</select>
+  <button onclick="salvar()">Salvar</button>
+</div>
 
-<button onclick="salvar()">Salvar</button>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-<script>
-  // 🔥 CONFIG FIREBASE (SEU)
   const firebaseConfig = {
     apiKey: "AIzaSyBkpOKakidlZ2WVZNBI9oEFHEjs1EqCt78",
     authDomain: "streamflix-62461.firebaseapp.com",
     projectId: "streamflix-62461"
   };
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-  // 🎬 SALVAR
-  async function salvar() {
-    const title = document.getElementById("title").value;
-    const cover = document.getElementById("cover").value;
-    const desc = document.getElementById("desc").value;
-    const video = document.getElementById("video").value;
-    const type = document.getElementById("type").value;
+  const catalogo = document.getElementById("catalogo");
+  const player = document.getElementById("player");
 
-    await db.collection("movies").add({
-      title,
-      cover,
-      description: desc,
-      videoUrl: video,
-      videoType: type
-    });
+  // 🔐 LOGIN
+  window.login = function () {
+    const user = document.getElementById("user").value;
+    const pass = document.getElementById("pass").value;
 
-    alert("Salvo!");
-    carregar();
-  }
+    if (user === "marco" && pass === "22510827") {
+      document.getElementById("adminPanel").style.display = "block";
+      document.getElementById("login").style.display = "none";
+    } else {
+      alert("Login errado");
+    }
+  };
 
-  // 📺 CARREGAR CATÁLOGO
+  // 📺 CARREGAR
   async function carregar() {
-    const div = document.getElementById("catalogo");
-    div.innerHTML = "";
-
-    const snap = await db.collection("movies").get();
+    catalogo.innerHTML = "";
+    const snap = await getDocs(collection(db, "movies"));
 
     snap.forEach(doc => {
       const m = doc.data();
 
-      div.innerHTML += `
-        <div class="card" onclick="assistir('${m.videoUrl}','${m.videoType}')">
-          <img src="${m.cover}">
-          <p>${m.title}</p>
-        </div>
+      const div = document.createElement("div");
+      div.className = "card";
+
+      div.innerHTML = `
+        <img src="${m.cover}">
+        <p>${m.title}</p>
       `;
+
+      div.onclick = () => assistir(m.videoUrl, m.videoType);
+
+      catalogo.appendChild(div);
     });
   }
 
   // ▶️ PLAYER
   function assistir(url, type) {
-    const player = document.getElementById("player");
-    player.style.display = "block";
-
     if (type === "mp4") {
       player.innerHTML = `<video controls width="80%"><source src="${url}"></video>`;
     }
@@ -163,8 +163,22 @@
     window.scrollTo(0, 0);
   }
 
+  // 💾 SALVAR
+  window.salvar = async function () {
+    await addDoc(collection(db, "movies"), {
+      title: document.getElementById("title").value,
+      cover: document.getElementById("cover").value,
+      description: document.getElementById("desc").value,
+      videoUrl: document.getElementById("video").value,
+      videoType: document.getElementById("type").value
+    });
+
+    alert("Salvo!");
+    carregar();
+  };
+
   carregar();
 </script>
 
 </body>
-  </html>
+</html>
