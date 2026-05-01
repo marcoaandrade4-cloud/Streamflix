@@ -5,139 +5,95 @@
 <title>StreamFlix</title>
 
 <style>
-body{
-  margin:0;
-  font-family:Arial;
-  background:#000;
-  color:#fff;
-}
+body{margin:0;font-family:Arial;background:#000;color:#fff}
 
-/* NAVBAR */
+/* NAV */
 .nav{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:10px;
-  background:#0b0b0b;
-  border-bottom:2px solid #00ff66;
+ display:flex;justify-content:space-between;
+ padding:10px;background:#0b0b0b;
+ border-bottom:2px solid #00ff66;
 }
-
-.logo{
-  color:#00ff66;
-  font-weight:bold;
-  font-size:18px;
-}
-
+.logo{color:#00ff66;font-weight:bold}
 .nav button{
-  background:#00ff66;
-  border:none;
-  padding:8px 12px;
-  border-radius:10px;
+ background:#00ff66;border:none;padding:8px;border-radius:10px;
 }
 
-/* DESTAQUE */
+/* BANNER */
 .banner{
-  background:#0f1f14;
-  margin:15px;
-  padding:20px;
-  border-radius:15px;
-  text-align:center;
+ margin:15px;padding:20px;
+ background:#0f1f14;border-radius:15px;
+ text-align:center;box-shadow:0 0 20px #00ff66;
 }
-
 .banner button{
-  background:#00ff66;
-  border:none;
-  padding:10px 20px;
-  border-radius:10px;
-  margin-top:10px;
+ background:#00ff66;border:none;padding:10px 20px;border-radius:10px;
 }
 
 /* GRID */
 .grid{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:15px;
-  padding:15px;
+ display:grid;
+ grid-template-columns:repeat(2,1fr);
+ gap:15px;padding:15px;
 }
-
-.card{
-  text-align:center;
-}
-
-.card img{
-  width:100%;
-  border-radius:15px;
-}
-
-.card p{
-  margin-top:5px;
-}
+.card{text-align:center;transition:.3s}
+.card:hover{transform:scale(1.05)}
+.card img{width:100%;border-radius:15px}
 </style>
 </head>
 
 <body>
 
-<!-- NAV -->
 <div class="nav">
-  <div class="logo">🐾 StreamFlix</div>
-  <button onclick="abrirADM()">ADM</button>
+ <div class="logo">🐾 StreamFlix</div>
+ <button onclick="location.href='admin.html'">ADM</button>
 </div>
 
-<!-- DESTAQUE -->
 <div class="banner">
-  <h2>Novo episódio!</h2>
-  <p>Disponível agora</p>
-  <button>▶ Assistir</button>
+ <h2>Novo episódio!</h2>
+ <button onclick="assistirNovo()">▶ Assistir</button>
 </div>
 
-<h2 style="text-align:center;">Bem-vindo!</h2>
-
-<!-- GRID -->
 <div class="grid" id="grid"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
- getFirestore, collection, getDocs
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const app = initializeApp({
  apiKey:"AIzaSyBkpOKakidlZ2WVZNBI9oEFHEjs1EqCt78",
  projectId:"streamflix-62461"
 });
-
 const db = getFirestore(app);
-
-const grid = document.getElementById("grid");
 
 async function carregar(){
  const snap = await getDocs(collection(db,"conteudos"));
+ snap.forEach(d=>{
+  const c=d.data();
 
- snap.forEach(doc=>{
-  const c = doc.data();
-
-  const div = document.createElement("div");
+  const div=document.createElement("div");
   div.className="card";
-
-  div.innerHTML=`
-    <img src="${c.cover}">
-    <p>${c.title}</p>
-  `;
+  div.innerHTML=`<img src="${c.cover}"><p>${c.title}</p>`;
 
   div.onclick=()=>{
-    localStorage.setItem("serie", JSON.stringify(c));
-    window.location="serie.html";
+    localStorage.setItem("serie",JSON.stringify(c));
+    location.href="serie.html";
   };
 
   grid.appendChild(div);
  });
 }
 
-carregar();
+async function assistirNovo(){
+ const snap = await getDocs(collection(db,"conteudos"));
+ let ultimo=null;
+ snap.forEach(d=> ultimo=d.data());
 
-window.abrirADM=()=>{
- location.href="admin.html";
-};
+ if(ultimo){
+  localStorage.setItem("serie",JSON.stringify(ultimo));
+  location.href="serie.html";
+ }
+}
+
+carregar();
 </script>
 
 </body>
