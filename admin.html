@@ -5,13 +5,9 @@
 <title>Admin</title>
 
 <style>
-body{background:#0e0e0e;color:#fff;font-family:Arial;margin:0;padding:10px}
-input,textarea,select{
-  display:block;margin:5px 0;padding:8px;width:100%;max-width:400px
-}
-button{
-  padding:8px;margin:5px;border:none;background:#00ff66;cursor:pointer
-}
+body{background:#0e0e0e;color:#fff;font-family:Arial;padding:10px}
+input,textarea,select{display:block;margin:5px 0;padding:8px;width:100%;max-width:400px}
+button{padding:8px;margin:5px;background:#00ff66;border:none;cursor:pointer}
 .danger{background:red;color:#fff}
 .box{border:1px solid #333;padding:10px;margin:10px 0}
 #panel{display:none}
@@ -26,9 +22,9 @@ button{
 <button onclick="toggleLogin()">Entrar ADM</button>
 
 <div id="loginBox">
-  <input id="user" placeholder="Usuário">
-  <input id="pass" type="password" placeholder="Senha">
-  <button onclick="login()">Login</button>
+<input id="user" placeholder="Usuário">
+<input id="pass" type="password">
+<button onclick="login()">Login</button>
 </div>
 
 <div id="panel">
@@ -36,23 +32,21 @@ button{
 <h2>Criar / Editar</h2>
 
 <select id="tipo">
-  <option value="filme">Filme</option>
-  <option value="serie">Série</option>
+<option value="filme">Filme</option>
+<option value="serie">Série</option>
 </select>
 
 <input id="title" placeholder="Título">
-<input id="cover" placeholder="Capa (URL)">
+<input id="cover" placeholder="Capa">
 <input id="year" placeholder="Ano">
 <textarea id="desc" placeholder="Sinopse"></textarea>
 
-<!-- FILME -->
 <div id="filmeBox" class="box">
 <h3>Idiomas (Filme)</h3>
 <button onclick="addLangFilme()">+ Idioma</button>
 <div id="filmeLangs"></div>
 </div>
 
-<!-- SERIE -->
 <div id="serieBox" class="box">
 <h3>Série</h3>
 <button onclick="addSeason()">+ Temporada</button>
@@ -82,15 +76,13 @@ const app = initializeApp({
 });
 const db = getFirestore(app);
 
-// ESTADO
 let editId=null;
 let seasons=[];
 let filmeLangs=[];
 
 // LOGIN
 window.toggleLogin=()=>{
- loginBox.style.display =
-  loginBox.style.display==="none"?"block":"none";
+ loginBox.style.display = loginBox.style.display==="none"?"block":"none";
 };
 
 window.login=()=>{
@@ -102,20 +94,15 @@ window.login=()=>{
  } else alert("Login errado");
 };
 
-// TIPO
+// UI
 tipo.onchange=atualizarUI;
 
 function atualizarUI(){
- if(tipo.value==="filme"){
-  filmeBox.style.display="block";
-  serieBox.style.display="none";
- }else{
-  filmeBox.style.display="none";
-  serieBox.style.display="block";
- }
+ filmeBox.style.display = tipo.value==="filme"?"block":"none";
+ serieBox.style.display = tipo.value==="serie"?"block":"none";
 }
 
-// ===== FILME =====
+// FILME
 window.addLangFilme=()=>{
  filmeLangs.push({lang:"PT-BR",url:"",type:"youtube"});
  renderFilme();
@@ -137,7 +124,7 @@ function renderFilme(){
  });
 }
 
-// ===== SÉRIE =====
+// SERIE
 window.addSeason=()=>{
  seasons.push({episodes:[]});
  renderSeasons();
@@ -156,28 +143,15 @@ window.addLang=(si,ei)=>{
 function renderSeasons(){
  seasonsDiv.innerHTML="";
 
- if(seasons.length===0){
-   seasonsDiv.innerHTML="<p>Sem temporadas</p>";
-   return;
- }
-
  seasons.forEach((s,si)=>{
   let html=`<div class="box">
   <h3>Temporada ${si+1}</h3>
   <button onclick="addEpisode(${si})">+ Episódio</button>`;
 
-  if(!s.episodes || s.episodes.length===0){
-    html += "<p>Sem episódios</p>";
-  }
-
   s.episodes.forEach((ep,ei)=>{
     html+=`<div class="box">
     <input value="${ep.title}" onchange="seasons[${si}].episodes[${ei}].title=this.value">
     <button onclick="addLang(${si},${ei})">+ Idioma</button>`;
-
-    if(!ep.languages || ep.languages.length===0){
-      html += "<p>Sem idiomas</p>";
-    }
 
     ep.languages.forEach((l,li)=>{
       html+=`
@@ -193,7 +167,7 @@ function renderSeasons(){
  });
 }
 
-// ===== SALVAR =====
+// SALVAR
 window.salvar=async()=>{
  const data={
   type:tipo.value,
@@ -223,7 +197,7 @@ window.salvar=async()=>{
  carregarLista();
 };
 
-// ===== EDITAR (CORRIGIDO) =====
+// 🔥 EDITAR (CORRIGE QUALQUER DADO)
 window.editar=async(id)=>{
  const snap=await getDocs(collection(db,"conteudos"));
 
@@ -239,18 +213,32 @@ window.editar=async(id)=>{
    desc.value=c.description||"";
    tipo.value=c.type||"filme";
 
-   // 🔥 CORREÇÃO AUTOMÁTICA
    if(c.type==="serie"){
-     seasons=(c.seasons||[]).map(s=>({
-       episodes:(s.episodes||[]).map(ep=>({
-         title:ep.title||"Episódio",
-         languages:(ep.languages||[]).map(l=>({
-           lang:l.lang||"PT-BR",
-           url:l.url||"",
-           type:l.type||"youtube"
-         }))
-       }))
-     }));
+     seasons=[];
+
+     (c.seasons||[]).forEach(s=>{
+       let season={episodes:[]};
+
+       (s.episodes||[]).forEach(ep=>{
+         let episodio={
+           title:ep?.title||"Episódio",
+           languages:[]
+         };
+
+         (ep.languages||[]).forEach(l=>{
+           episodio.languages.push({
+             lang:l?.lang||"PT-BR",
+             url:l?.url||"",
+             type:l?.type||"youtube"
+           });
+         });
+
+         season.episodes.push(episodio);
+       });
+
+       seasons.push(season);
+     });
+
      renderSeasons();
      filmeLangs=[];
      renderFilme();
@@ -266,7 +254,7 @@ window.editar=async(id)=>{
  });
 };
 
-// ===== DELETAR =====
+// DELETAR
 window.deletar=async(id)=>{
  if(confirm("Excluir?")){
   await deleteDoc(doc(db,"conteudos",id));
@@ -274,16 +262,11 @@ window.deletar=async(id)=>{
  }
 };
 
-// ===== LISTA =====
+// LISTA
 async function carregarLista(){
  lista.innerHTML="";
 
  const snap=await getDocs(collection(db,"conteudos"));
-
- if(snap.empty){
-  lista.innerHTML="<p>Sem conteúdo</p>";
-  return;
- }
 
  snap.forEach(d=>{
   const c=d.data();
@@ -298,7 +281,7 @@ async function carregarLista(){
  });
 }
 
-// ===== RESET =====
+// RESET
 function reset(){
  editId=null;
  title.value="";
