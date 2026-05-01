@@ -5,38 +5,95 @@
 <title>StreamFlix</title>
 
 <style>
-body{margin:0;font-family:Arial;background:#000;color:#fff}
+body{
+ margin:0;
+ font-family:Arial;
+ background:#000;
+ color:#fff;
+}
 
-/* NAV */
+/* NAVBAR */
 .nav{
- display:flex;justify-content:space-between;
- padding:10px;background:#0b0b0b;
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ padding:12px;
+ background:#0b0b0b;
  border-bottom:2px solid #00ff66;
 }
-.logo{color:#00ff66;font-weight:bold}
+
+.logo{
+ color:#00ff66;
+ font-weight:bold;
+ font-size:18px;
+}
+
 .nav button{
- background:#00ff66;border:none;padding:8px;border-radius:10px;
+ background:#00ff66;
+ border:none;
+ padding:8px 12px;
+ border-radius:10px;
+ font-weight:bold;
 }
 
 /* BANNER */
 .banner{
- margin:15px;padding:20px;
- background:#0f1f14;border-radius:15px;
- text-align:center;box-shadow:0 0 20px #00ff66;
+ margin:15px;
+ padding:20px;
+ border-radius:15px;
+ background:linear-gradient(135deg,#0f1f14,#001a0a);
+ text-align:center;
+ box-shadow:0 0 25px #00ff66;
 }
+
+.banner h2{
+ margin:0;
+}
+
 .banner button{
- background:#00ff66;border:none;padding:10px 20px;border-radius:10px;
+ margin-top:10px;
+ background:#00ff66;
+ border:none;
+ padding:12px 25px;
+ border-radius:12px;
+ font-weight:bold;
+ font-size:16px;
 }
 
 /* GRID */
 .grid{
  display:grid;
  grid-template-columns:repeat(2,1fr);
- gap:15px;padding:15px;
+ gap:15px;
+ padding:15px;
 }
-.card{text-align:center;transition:.3s}
-.card:hover{transform:scale(1.05)}
-.card img{width:100%;border-radius:15px}
+
+.card{
+ position:relative;
+ border-radius:15px;
+ overflow:hidden;
+ transition:.3s;
+}
+
+.card:hover{
+ transform:scale(1.05);
+ box-shadow:0 0 15px #00ff66;
+}
+
+.card img{
+ width:100%;
+ height:100%;
+ object-fit:cover;
+}
+
+.card span{
+ position:absolute;
+ bottom:0;
+ width:100%;
+ background:rgba(0,0,0,0.7);
+ padding:5px;
+ text-align:center;
+}
 </style>
 </head>
 
@@ -48,8 +105,8 @@ body{margin:0;font-family:Arial;background:#000;color:#fff}
 </div>
 
 <div class="banner">
- <h2>Novo episódio!</h2>
- <button onclick="assistirNovo()">▶ Assistir</button>
+ <h2>🔥 Novo episódio disponível!</h2>
+ <button onclick="assistirNovo()">▶ Assistir agora</button>
 </div>
 
 <div class="grid" id="grid"></div>
@@ -66,16 +123,21 @@ const db = getFirestore(app);
 
 async function carregar(){
  const snap = await getDocs(collection(db,"conteudos"));
+
  snap.forEach(d=>{
-  const c=d.data();
+  const c = d.data();
 
   const div=document.createElement("div");
   div.className="card";
-  div.innerHTML=`<img src="${c.cover}"><p>${c.title}</p>`;
+
+  div.innerHTML=`
+   <img src="${c.cover}">
+   <span>${c.title}</span>
+  `;
 
   div.onclick=()=>{
-    localStorage.setItem("serie",JSON.stringify(c));
-    location.href="serie.html";
+   localStorage.setItem("serie",JSON.stringify(c));
+   location.href="serie.html";
   };
 
   grid.appendChild(div);
