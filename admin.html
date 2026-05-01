@@ -5,190 +5,285 @@
 <title>Admin</title>
 
 <style>
-body{background:#111;color:white;text-align:center;}
-input,textarea,select{display:block;margin:10px auto;padding:10px;width:250px;}
-button{padding:10px;background:red;color:white;border:none;margin:5px;}
-#panel{display:none;}
-#login{display:none;}
-.item{border:1px solid #333;margin:10px;padding:10px;}
+body{background:#0e0e0e;color:#fff;font-family:Arial;margin:0;padding:10px}
+h1,h2,h3{margin:10px 0}
+input,textarea,select{
+  display:block;margin:6px 0;padding:8px;width:100%;max-width:420px
+}
+button{padding:8px 12px;margin:6px 4px;border:none;background:#00ff66;color:#000;cursor:pointer}
+.danger{background:#ff4d4d;color:#fff}
+.row{display:flex;flex-wrap:wrap;gap:10px}
+.box{border:1px solid #333;border-radius:8px;padding:10px;margin:10px 0}
+.small{font-size:12px;color:#bbb}
+#panel{display:none}
+#loginBox{display:none}
+.listItem{border:1px solid #333;border-radius:8px;padding:10px;margin:10px 0}
+.flex{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+hr{border-color:#333}
 </style>
 </head>
 
 <body>
 
-<h1>ADMIN</h1>
+<h1>PAINEL ADM</h1>
 
-<button onclick="mostrarLogin()">Entrar ADM</button>
+<button onclick="toggleLogin()">Entrar ADM</button>
 
-<div id="login">
-<input id="user" placeholder="Usuário">
-<input id="pass" type="password">
-<button onclick="login()">Login</button>
+<div id="loginBox" class="box">
+  <input id="user" placeholder="Usuário">
+  <input id="pass" type="password" placeholder="Senha">
+  <button onclick="login()">Login</button>
 </div>
 
 <div id="panel">
 
-<h2>Adicionar</h2>
+  <h2>➕ Criar / ✏️ Editar</h2>
 
-<select id="tipo">
-<option value="filme">Filme</option>
-<option value="serie">Série</option>
-</select>
+  <div class="row">
+    <select id="tipo">
+      <option value="filme">Filme</option>
+      <option value="serie">Série</option>
+    </select>
 
-<input id="title" placeholder="Título">
-<input id="cover" placeholder="Capa">
-<input id="year" placeholder="Ano">
-<textarea id="desc" placeholder="Sinopse"></textarea>
+    <input id="title" placeholder="Título">
+    <input id="cover" placeholder="URL da capa">
+    <input id="year" placeholder="Ano">
+  </div>
 
-<input id="lang" placeholder="Idioma">
-<input id="url" placeholder="Link">
-<select id="vtype">
-<option value="youtube">YouTube</option>
-<option value="mp4">MP4</option>
-<option value="drive">Drive</option>
-</select>
+  <textarea id="desc" placeholder="Sinopse"></textarea>
 
-<button onclick="salvar()">Salvar</button>
+  <!-- FILME -->
+  <div id="filmeBox" class="box">
+    <h3>Filme → Idiomas</h3>
+    <button onclick="addLangFilme()">+ Idioma</button>
+    <div id="filmeLangs"></div>
+  </div>
 
-<hr>
+  <!-- SÉRIE -->
+  <div id="serieBox" class="box">
+    <h3>Série</h3>
+    <button onclick="addSeason()">+ Temporada</button>
+    <div id="seasons"></div>
+  </div>
 
-<h2>Conteúdos</h2>
-<div id="lista"></div>
+  <div class="flex">
+    <button onclick="salvar()">💾 Salvar</button>
+    <button class="danger" onclick="cancelarEdicao()">Cancelar edição</button>
+  </div>
+
+  <hr>
+
+  <h2>📄 Conteúdos</h2>
+  <div id="lista"></div>
 
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  getFirestore,
-  collection,
-  addDoc,
-  getDocs,
-  deleteDoc,
-  doc,
-  updateDoc
+  getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const app = initializeApp({
- apiKey:"AIzaSyBkpOKakidlZ2WVZNBI9oEFHEjs1EqCt78",
- authDomain:"streamflix-62461.firebaseapp.com",
- projectId:"streamflix-62461"
+  apiKey:"AIzaSyBkpOKakidlZ2WVZNBI9oEFHEjs1EqCt78",
+  projectId:"streamflix-62461"
 });
-
 const db = getFirestore(app);
 
+// ====== ESTADO ======
 let editId = null;
+let seasons = [];        // para série
+let filmeLangs = [];     // para filme
 
-// 🔐 LOGIN
-window.mostrarLogin = () => {
- document.getElementById("login").style.display = "block";
+// ====== LOGIN ======
+window.toggleLogin = ()=> {
+  loginBox.style.display = loginBox.style.display === "none" ? "block" : "none";
 };
 
-window.login = () => {
- const u = user.value;
- const p = pass.value;
-
- if(u==="marco" && p==="22510827"){
-  panel.style.display="block";
-  login.style.display="none";
-  carregar();
- } else {
-  alert("Login errado");
- }
+window.login = ()=> {
+  if(user.value==="marco" && pass.value==="22510827"){
+    panel.style.display="block";
+    loginBox.style.display="none";
+    carregarLista();
+    atualizarTipoUI();
+  } else {
+    alert("Login errado");
+  }
 };
 
-// 💾 SALVAR / EDITAR
-window.salvar = async () => {
-
- const data = {
-  type:tipo.value,
-  title:title.value,
-  cover:cover.value,
-  year:year.value,
-  description:desc.value,
-  languages:[{
-    lang:lang.value,
-    url:url.value,
-    type:vtype.value
-  }],
-  seasons:[]
- };
-
- if(editId){
-  await updateDoc(doc(db,"conteudos",editId), data);
-  editId = null;
-  alert("Atualizado!");
- } else {
-  await addDoc(collection(db,"conteudos"), data);
-  alert("Salvo!");
- }
-
- limpar();
- carregar();
-};
-
-// 📄 LISTAR
-async function carregar(){
- const div = document.getElementById("lista");
- div.innerHTML="";
-
- const snap = await getDocs(collection(db,"conteudos"));
-
- snap.forEach(d=>{
-  const c = d.data();
-
-  div.innerHTML += `
-    <div class="item">
-      <h3>${c.title}</h3>
-      <p>${c.year}</p>
-
-      <button onclick="editar('${d.id}')">Editar</button>
-      <button onclick="deletar('${d.id}')">Excluir</button>
-    </div>
-  `;
- });
+// ====== UI TIPO ======
+tipo.onchange = atualizarTipoUI;
+function atualizarTipoUI(){
+  if(tipo.value === "filme"){
+    filmeBox.style.display = "block";
+    serieBox.style.display = "none";
+  } else {
+    filmeBox.style.display = "none";
+    serieBox.style.display = "block";
+  }
 }
 
-// ✏️ EDITAR
-window.editar = async (id)=>{
- const snap = await getDocs(collection(db,"conteudos"));
+// ====== FILME LANGS ======
+window.addLangFilme = ()=>{
+  filmeLangs.push({lang:"PT-BR", url:"", type:"youtube"});
+  renderFilmeLangs();
+};
 
- snap.forEach(d=>{
-  if(d.id === id){
+function renderFilmeLangs(){
+  filmeLangsDiv = document.getElementById("filmeLangs");
+  filmeLangsDiv.innerHTML = "";
+
+  filmeLangs.forEach((l,i)=>{
+    filmeLangsDiv.innerHTML += `
+      <div class="box">
+        <input value="${l.lang}" onchange="filmeLangs[${i}].lang=this.value">
+        <input value="${l.url}" placeholder="URL" onchange="filmeLangs[${i}].url=this.value">
+        <select onchange="filmeLangs[${i}].type=this.value">
+          <option ${l.type==='youtube'?'selected':''}>youtube</option>
+          <option ${l.type==='mp4'?'selected':''}>mp4</option>
+          <option ${l.type==='drive'?'selected':''}>drive</option>
+        </select>
+      </div>
+    `;
+  });
+}
+
+// ====== SÉRIE ======
+window.addSeason = ()=>{
+  seasons.push({episodes:[]});
+  renderSeasons();
+};
+
+window.addEpisode = (si)=>{
+  seasons[si].episodes.push({title:"Novo episódio", languages:[]});
+  renderSeasons();
+};
+
+window.addLang = (si,ei)=>{
+  seasons[si].episodes[ei].languages.push({lang:"PT-BR", url:"", type:"youtube"});
+  renderSeasons();
+};
+
+function renderSeasons(){
+  const div = document.getElementById("seasons");
+  div.innerHTML = "";
+
+  seasons.forEach((s,si)=>{
+    let html = `<div class="box">
+      <h3>Temporada ${si+1}</h3>
+      <button onclick="addEpisode(${si})">+ Episódio</button>
+    `;
+
+    s.episodes.forEach((ep,ei)=>{
+      html += `<div class="box">
+        <input value="${ep.title}" onchange="seasons[${si}].episodes[${ei}].title=this.value">
+        <button onclick="addLang(${si},${ei})">+ Idioma</button>
+      `;
+
+      ep.languages.forEach((l,li)=>{
+        html += `
+          <input value="${l.lang}" onchange="seasons[${si}].episodes[${ei}].languages[${li}].lang=this.value">
+          <input value="${l.url}" onchange="seasons[${si}].episodes[${ei}].languages[${li}].url=this.value">
+        `;
+      });
+
+      html += `</div>`;
+    });
+
+    html += `</div>`;
+    div.innerHTML += html;
+  });
+}
+
+// ====== CRUD ======
+window.salvar = async ()=>{
+  const data = {
+    type: tipo.value,
+    title: title.value,
+    cover: cover.value,
+    year: year.value,
+    description: desc.value
+  };
+
+  if(tipo.value==="filme"){
+    data.languages = filmeLangs;
+    data.seasons = [];
+  } else {
+    data.seasons = seasons;
+    data.languages = [];
+  }
+
+  if(editId){
+    await updateDoc(doc(db,"conteudos",editId), data);
+    alert("Atualizado!");
+  } else {
+    await addDoc(collection(db,"conteudos"), data);
+    alert("Criado!");
+  }
+
+  reset();
+  carregarLista();
+};
+
+window.editar = async (id)=>{
+  const snap = await getDocs(collection(db,"conteudos"));
+  snap.forEach(d=>{
+    if(d.id===id){
+      const c = d.data();
+
+      editId = id;
+      tipo.value = c.type;
+      title.value = c.title;
+      cover.value = c.cover;
+      year.value = c.year;
+      desc.value = c.description;
+
+      if(c.type==="filme"){
+        filmeLangs = c.languages || [];
+        renderFilmeLangs();
+      } else {
+        seasons = c.seasons || [];
+        renderSeasons();
+      }
+
+      atualizarTipoUI();
+    }
+  });
+};
+
+window.deletar = async (id)=>{
+  if(confirm("Excluir?")){
+    await deleteDoc(doc(db,"conteudos",id));
+    carregarLista();
+  }
+};
+
+function reset(){
+  editId=null;
+  title.value="";cover.value="";year.value="";desc.value="";
+  seasons=[];filmeLangs=[];
+  renderSeasons();renderFilmeLangs();
+}
+
+window.cancelarEdicao = reset;
+
+// ====== LISTA ======
+async function carregarLista(){
+  lista.innerHTML = "";
+  const snap = await getDocs(collection(db,"conteudos"));
+
+  snap.forEach(d=>{
     const c = d.data();
 
-    title.value = c.title;
-    cover.value = c.cover;
-    year.value = c.year;
-    desc.value = c.description;
-
-    if(c.languages && c.languages.length){
-      lang.value = c.languages[0].lang;
-      url.value = c.languages[0].url;
-      vtype.value = c.languages[0].type;
-    }
-
-    tipo.value = c.type;
-    editId = id;
-  }
- });
-};
-
-// ❌ DELETAR
-window.deletar = async (id)=>{
- await deleteDoc(doc(db,"conteudos",id));
- alert("Excluído!");
- carregar();
-};
-
-// 🧹 LIMPAR
-function limpar(){
- title.value="";
- cover.value="";
- year.value="";
- desc.value="";
- lang.value="";
- url.value="";
+    lista.innerHTML += `
+      <div class="listItem">
+        <b>${c.title}</b> (${c.type})<br>
+        <span class="small">${c.year||""}</span><br>
+        <button onclick="editar('${d.id}')">Editar</button>
+        <button class="danger" onclick="deletar('${d.id}')">Excluir</button>
+      </div>
+    `;
+  });
 }
 </script>
 
