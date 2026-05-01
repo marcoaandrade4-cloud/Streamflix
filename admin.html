@@ -5,31 +5,16 @@
 <title>Admin</title>
 
 <style>
-body{background:#0e0e0e;color:#fff;font-family:Arial;padding:10px}
-input,textarea,select{display:block;margin:5px 0;padding:8px;width:100%;max-width:400px}
-button{padding:8px;margin:5px;background:#00ff66;border:none;cursor:pointer}
-.danger{background:red;color:#fff}
+body{background:#000;color:#fff;font-family:Arial;padding:10px}
+input,textarea{display:block;margin:5px;padding:8px;width:100%}
+button{padding:8px;margin:5px;background:#00ff66;border:none}
 .box{border:1px solid #333;padding:10px;margin:10px 0}
-#panel{display:none}
-#loginBox{display:none}
 </style>
 </head>
 
 <body>
 
-<h1>PAINEL ADM</h1>
-
-<button onclick="toggleLogin()">Entrar ADM</button>
-
-<div id="loginBox">
-<input id="user" placeholder="Usuário">
-<input id="pass" type="password">
-<button onclick="login()">Login</button>
-</div>
-
-<div id="panel">
-
-<h2>Criar / Editar</h2>
+<h1>ADM</h1>
 
 <select id="tipo">
 <option value="filme">Filme</option>
@@ -39,35 +24,22 @@ button{padding:8px;margin:5px;background:#00ff66;border:none;cursor:pointer}
 <input id="title" placeholder="Título">
 <input id="cover" placeholder="Capa">
 <input id="year" placeholder="Ano">
-<textarea id="desc" placeholder="Sinopse"></textarea>
+<textarea id="desc"></textarea>
 
-<div id="filmeBox" class="box">
-<h3>Idiomas (Filme)</h3>
-<button onclick="addLangFilme()">+ Idioma</button>
-<div id="filmeLangs"></div>
-</div>
-
-<div id="serieBox" class="box">
-<h3>Série</h3>
+<h3>Temporadas</h3>
 <button onclick="addSeason()">+ Temporada</button>
 <div id="seasons"></div>
-</div>
 
-<button onclick="salvar()">💾 Salvar</button>
-<button class="danger" onclick="reset()">Cancelar</button>
+<button onclick="salvar()">Salvar</button>
 
 <hr>
-
-<h2>Conteúdos</h2>
 <div id="lista"></div>
-
-</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
  getFirestore, collection, getDocs,
- addDoc, updateDoc, deleteDoc, doc
+ addDoc, deleteDoc, doc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const app = initializeApp({
@@ -76,90 +48,42 @@ const app = initializeApp({
 });
 const db = getFirestore(app);
 
-let editId=null;
 let seasons=[];
-let filmeLangs=[];
 
-// LOGIN
-window.toggleLogin=()=>{
- loginBox.style.display = loginBox.style.display==="none"?"block":"none";
-};
-
-window.login=()=>{
- if(user.value==="marco" && pass.value==="22510827"){
-  panel.style.display="block";
-  loginBox.style.display="none";
-  carregarLista();
-  atualizarUI();
- } else alert("Login errado");
-};
-
-// UI
-tipo.onchange=atualizarUI;
-
-function atualizarUI(){
- filmeBox.style.display = tipo.value==="filme"?"block":"none";
- serieBox.style.display = tipo.value==="serie"?"block":"none";
-}
-
-// FILME
-window.addLangFilme=()=>{
- filmeLangs.push({lang:"PT-BR",url:"",type:"youtube"});
- renderFilme();
-};
-
-function renderFilme(){
- filmeLangsDiv.innerHTML="";
- filmeLangs.forEach((l,i)=>{
-  filmeLangsDiv.innerHTML+=`
-  <div class="box">
-    <input value="${l.lang}" onchange="filmeLangs[${i}].lang=this.value">
-    <input value="${l.url}" onchange="filmeLangs[${i}].url=this.value">
-    <select onchange="filmeLangs[${i}].type=this.value">
-      <option ${l.type==='youtube'?'selected':''}>youtube</option>
-      <option ${l.type==='mp4'?'selected':''}>mp4</option>
-      <option ${l.type==='drive'?'selected':''}>drive</option>
-    </select>
-  </div>`;
- });
-}
-
-// SERIE
 window.addSeason=()=>{
  seasons.push({episodes:[]});
- renderSeasons();
+ render();
 };
 
-window.addEpisode=(si)=>{
- seasons[si].episodes.push({title:"Episódio",languages:[]});
- renderSeasons();
+window.addEpisode=(i)=>{
+ seasons[i].episodes.push({title:"Episódio",languages:[]});
+ render();
 };
 
-window.addLang=(si,ei)=>{
- seasons[si].episodes[ei].languages.push({lang:"PT-BR",url:"",type:"youtube"});
- renderSeasons();
+window.addLang=(i,j)=>{
+ seasons[i].episodes[j].languages.push({lang:"PT-BR",url:"",type:"youtube"});
+ render();
 };
 
-function renderSeasons(){
+function render(){
  seasonsDiv.innerHTML="";
-
- seasons.forEach((s,si)=>{
+ seasons.forEach((s,i)=>{
   let html=`<div class="box">
-  <h3>Temporada ${si+1}</h3>
-  <button onclick="addEpisode(${si})">+ Episódio</button>`;
+  <h4>Temporada ${i+1}</h4>
+  <button onclick="addEpisode(${i})">+ Episódio</button>`;
 
-  s.episodes.forEach((ep,ei)=>{
-    html+=`<div class="box">
-    <input value="${ep.title}" onchange="seasons[${si}].episodes[${ei}].title=this.value">
-    <button onclick="addLang(${si},${ei})">+ Idioma</button>`;
+  s.episodes.forEach((ep,j)=>{
+   html+=`<div class="box">
+   <input value="${ep.title}" onchange="seasons[${i}].episodes[${j}].title=this.value">
+   <button onclick="addLang(${i},${j})">+ Idioma</button>`;
 
-    ep.languages.forEach((l,li)=>{
-      html+=`
-      <input value="${l.lang}" onchange="seasons[${si}].episodes[${ei}].languages[${li}].lang=this.value">
-      <input value="${l.url}" onchange="seasons[${si}].episodes[${ei}].languages[${li}].url=this.value">`;
-    });
+   ep.languages.forEach((l,k)=>{
+    html+=`
+    <input value="${l.lang}" onchange="seasons[${i}].episodes[${j}].languages[${k}].lang=this.value">
+    <input value="${l.url}" onchange="seasons[${i}].episodes[${j}].languages[${k}].url=this.value">`;
+   });
 
-    html+=`</div>`;
+   html+=`</div>`;
   });
 
   html+=`</div>`;
@@ -167,132 +91,27 @@ function renderSeasons(){
  });
 }
 
-// SALVAR
 window.salvar=async()=>{
- const data={
-  type:tipo.value,
+ await addDoc(collection(db,"conteudos"),{
+  type:"serie",
   title:title.value,
   cover:cover.value,
   year:year.value,
-  description:desc.value
- };
-
- if(tipo.value==="filme"){
-  data.languages=filmeLangs;
-  data.seasons=[];
- }else{
-  data.seasons=seasons;
-  data.languages=[];
- }
-
- if(editId){
-  await updateDoc(doc(db,"conteudos",editId),data);
-  alert("Atualizado");
- }else{
-  await addDoc(collection(db,"conteudos"),data);
-  alert("Criado");
- }
-
- reset();
- carregarLista();
-};
-
-// 🔥 EDITAR (CORRIGE QUALQUER DADO)
-window.editar=async(id)=>{
- const snap=await getDocs(collection(db,"conteudos"));
-
- snap.forEach(d=>{
-  if(d.id===id){
-   const c=d.data();
-
-   editId=id;
-
-   title.value=c.title||"";
-   cover.value=c.cover||"";
-   year.value=c.year||"";
-   desc.value=c.description||"";
-   tipo.value=c.type||"filme";
-
-   if(c.type==="serie"){
-     seasons=[];
-
-     (c.seasons||[]).forEach(s=>{
-       let season={episodes:[]};
-
-       (s.episodes||[]).forEach(ep=>{
-         let episodio={
-           title:ep?.title||"Episódio",
-           languages:[]
-         };
-
-         (ep.languages||[]).forEach(l=>{
-           episodio.languages.push({
-             lang:l?.lang||"PT-BR",
-             url:l?.url||"",
-             type:l?.type||"youtube"
-           });
-         });
-
-         season.episodes.push(episodio);
-       });
-
-       seasons.push(season);
-     });
-
-     renderSeasons();
-     filmeLangs=[];
-     renderFilme();
-   }else{
-     filmeLangs=c.languages||[];
-     renderFilme();
-     seasons=[];
-     renderSeasons();
-   }
-
-   atualizarUI();
-  }
+  description:desc.value,
+  seasons:seasons
  });
+
+ alert("Salvo!");
 };
 
-// DELETAR
-window.deletar=async(id)=>{
- if(confirm("Excluir?")){
-  await deleteDoc(doc(db,"conteudos",id));
-  carregarLista();
- }
-};
-
-// LISTA
-async function carregarLista(){
- lista.innerHTML="";
-
+async function carregar(){
  const snap=await getDocs(collection(db,"conteudos"));
-
  snap.forEach(d=>{
-  const c=d.data();
-
-  lista.innerHTML+=`
-  <div class="box">
-    <b>${c.title}</b> (${c.type})
-    <br>
-    <button onclick="editar('${d.id}')">Editar</button>
-    <button class="danger" onclick="deletar('${d.id}')">Excluir</button>
-  </div>`;
+  lista.innerHTML+=`<div>${d.data().title}</div>`;
  });
 }
 
-// RESET
-function reset(){
- editId=null;
- title.value="";
- cover.value="";
- year.value="";
- desc.value="";
- seasons=[];
- filmeLangs=[];
- renderSeasons();
- renderFilme();
-}
+carregar();
 </script>
 
 </body>
