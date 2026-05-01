@@ -2,37 +2,56 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>StreamFlix</title>
+<title>Admin</title>
 
 <style>
-body { background:#0f0f0f; color:white; font-family:Arial; }
-h1 { color:red; text-align:center; }
-
-.grid {
-  display:flex; flex-wrap:wrap; gap:10px; justify-content:center;
-}
-
-.card { width:150px; cursor:pointer; text-align:center; }
-.card img { width:100%; border-radius:10px; }
-
-#player { text-align:center; margin:20px; }
-button { padding:10px; margin:5px; }
+body{background:#111;color:white;text-align:center;}
+input,textarea,select{display:block;margin:10px auto;padding:10px;width:250px;}
+button{padding:10px;background:red;color:white;border:none;}
+#panel{display:none;}
 </style>
 </head>
 
 <body>
 
-<h1>STREAMFLIX 🎬</h1>
+<h1>ADMIN</h1>
 
-<button onclick="window.location='admin.html'">ADM</button>
+<button onclick="mostrarLogin()">Entrar ADM</button>
 
-<div id="player"></div>
-<div id="catalogo" class="grid"></div>
-<div id="detalhes"></div>
+<div id="login" style="display:none;">
+<input id="user" placeholder="user">
+<input id="pass" type="password">
+<button onclick="login()">Login</button>
+</div>
+
+<div id="panel">
+
+<select id="tipo">
+<option value="filme">Filme</option>
+<option value="serie">Série</option>
+</select>
+
+<input id="title" placeholder="Título">
+<input id="cover" placeholder="Capa">
+<input id="year" placeholder="Ano">
+<textarea id="desc" placeholder="Sinopse"></textarea>
+
+<h3>Idioma</h3>
+<input id="lang" placeholder="Idioma (ex: PT-BR)">
+<input id="url" placeholder="Link">
+<select id="vtype">
+<option value="youtube">YouTube</option>
+<option value="mp4">MP4</option>
+<option value="drive">Drive</option>
+</select>
+
+<button onclick="salvar()">Salvar</button>
+
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const app = initializeApp({
  apiKey:"AIzaSyBkpOK...",
@@ -42,84 +61,32 @@ const app = initializeApp({
 
 const db = getFirestore(app);
 
-const cat = document.getElementById("catalogo");
-const detalhes = document.getElementById("detalhes");
-const player = document.getElementById("player");
+window.mostrarLogin=()=>{document.getElementById("login").style.display="block";}
 
-async function carregar(){
- const snap = await getDocs(collection(db,"conteudos"));
+window.login=()=>{
+ if(user.value==="marco" && pass.value==="22510827"){
+  panel.style.display="block";
+  login.style.display="none";
+ }
+}
 
- snap.forEach(doc=>{
-  const c = doc.data();
-
-  const div = document.createElement("div");
-  div.className="card";
-
-  div.innerHTML=`
-    <img src="${c.cover}">
-    <p>${c.title}</p>
-  `;
-
-  div.onclick = ()=>abrirConteudo(c);
-
-  cat.appendChild(div);
+window.salvar=async()=>{
+ await addDoc(collection(db,"conteudos"),{
+  type:tipo.value,
+  title:title.value,
+  cover:cover.value,
+  year:year.value,
+  description:desc.value,
+  languages:[{
+    lang:lang.value,
+    url:url.value,
+    type:vtype.value
+  }],
+  seasons:[]
  });
+
+ alert("Salvo!");
 }
-
-function abrirConteudo(c){
- detalhes.innerHTML="";
- player.innerHTML="";
-
- if(c.type==="filme"){
-  mostrarPlayer(c.languages);
- } else {
-  // série
-  detalhes.innerHTML="<h2>Temporadas</h2>";
-
-  c.seasons.forEach((s,i)=>{
-    const btn=document.createElement("button");
-    btn.innerText="Temporada "+(i+1);
-    btn.onclick=()=>mostrarEpisodios(s);
-    detalhes.appendChild(btn);
-  });
- }
-}
-
-function mostrarEpisodios(season){
- detalhes.innerHTML="<h2>Episódios</h2>";
-
- season.episodes.forEach(ep=>{
-  const btn=document.createElement("button");
-  btn.innerText=ep.title;
-  btn.onclick=()=>mostrarPlayer(ep.languages);
-  detalhes.appendChild(btn);
- });
-}
-
-function mostrarPlayer(langs){
- detalhes.innerHTML="<h2>Escolha idioma</h2>";
-
- langs.forEach(l=>{
-  const btn=document.createElement("button");
-  btn.innerText=l.lang;
-  btn.onclick=()=>assistir(l.url,l.type);
-  detalhes.appendChild(btn);
- });
-}
-
-function assistir(url,type){
- if(type==="youtube"){
-  player.innerHTML=`<iframe width="80%" height="400" src="https://www.youtube.com/embed/${url}" allowfullscreen></iframe>`;
- }
- if(type==="mp4"){
-  player.innerHTML=`<video controls width="80%"><source src="${url}"></video>`;
- }
- if(type==="drive"){
-  player.innerHTML=`<iframe width="80%" height="400" src="${url}"></iframe>`;
- }
-}
-
-carregar();
 </script>
 
 </body>
