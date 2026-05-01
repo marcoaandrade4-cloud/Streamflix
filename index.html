@@ -5,26 +5,56 @@
 <title>StreamFlix</title>
 
 <style>
-body { background:#0f0f0f; color:white; font-family:Arial; }
+body { background:#0f0f0f; color:white; font-family:Arial; margin:0; }
+
 h1 { color:red; text-align:center; }
 
-.grid {
-  display:flex; flex-wrap:wrap; gap:10px; justify-content:center;
+.top {
+  display:flex;
+  justify-content:space-between;
+  padding:10px;
 }
 
-.card { width:150px; cursor:pointer; text-align:center; }
-.card img { width:100%; border-radius:10px; }
+input {
+  padding:8px;
+  width:200px;
+}
+
+.grid {
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  justify-content:center;
+}
+
+.card {
+  width:150px;
+  cursor:pointer;
+  text-align:center;
+}
+
+.card img {
+  width:100%;
+  border-radius:10px;
+}
+
+button {
+  padding:8px;
+  cursor:pointer;
+}
 
 #player { text-align:center; margin:20px; }
-button { padding:10px; margin:5px; }
 </style>
 </head>
 
 <body>
 
-<h1>STREAMFLIX 🎬</h1>
+<div class="top">
+  <button onclick="abrirAdmin()">ADM</button>
+  <input id="busca" placeholder="Pesquisar..." oninput="filtrar()">
+</div>
 
-<button onclick="window.location='admin.html'">ADM</button>
+<h1>STREAMFLIX 🎬</h1>
 
 <div id="player"></div>
 <div id="catalogo" class="grid"></div>
@@ -35,79 +65,103 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const app = initializeApp({
- apiKey:"AIzaSyBkpOK...",
+ apiKey:"AIzaSyBkpOKakidlZ2WVZNBI9oEFHEjs1EqCt78",
  authDomain:"streamflix-62461.firebaseapp.com",
  projectId:"streamflix-62461"
 });
 
 const db = getFirestore(app);
 
-const cat = document.getElementById("catalogo");
-const detalhes = document.getElementById("detalhes");
-const player = document.getElementById("player");
+let dados = [];
+
+window.abrirAdmin = () => {
+  window.location.href = "admin.html";
+};
 
 async function carregar(){
  const snap = await getDocs(collection(db,"conteudos"));
+ dados = snap.docs.map(d => d.data());
+ mostrar(dados);
+}
 
- snap.forEach(doc=>{
-  const c = doc.data();
+function mostrar(lista){
+ const cat = document.getElementById("catalogo");
+ cat.innerHTML="";
 
+ if(lista.length === 0){
+   cat.innerHTML = "<p>Nada encontrado...</p>";
+   return;
+ }
+
+ lista.forEach(c=>{
   const div = document.createElement("div");
   div.className="card";
 
-  div.innerHTML=`
+  div.innerHTML = `
     <img src="${c.cover}">
     <p>${c.title}</p>
   `;
 
-  div.onclick = ()=>abrirConteudo(c);
+  div.onclick = ()=>abrir(c);
 
   cat.appendChild(div);
  });
 }
 
-function abrirConteudo(c){
- detalhes.innerHTML="";
+window.filtrar = () => {
+ const texto = document.getElementById("busca").value.toLowerCase();
+ const filtrado = dados.filter(c => c.title.toLowerCase().includes(texto));
+ mostrar(filtrado);
+};
+
+function abrir(c){
+ const det = document.getElementById("detalhes");
+ const player = document.getElementById("player");
+
+ det.innerHTML="";
  player.innerHTML="";
 
- if(c.type==="filme"){
-  mostrarPlayer(c.languages);
+ if(c.type === "filme"){
+  escolherIdioma(c.languages);
  } else {
-  // série
-  detalhes.innerHTML="<h2>Temporadas</h2>";
+  det.innerHTML="<h2>Temporadas</h2>";
 
   c.seasons.forEach((s,i)=>{
     const btn=document.createElement("button");
     btn.innerText="Temporada "+(i+1);
-    btn.onclick=()=>mostrarEpisodios(s);
-    detalhes.appendChild(btn);
+    btn.onclick=()=>episodios(s);
+    det.appendChild(btn);
   });
  }
 }
 
-function mostrarEpisodios(season){
- detalhes.innerHTML="<h2>Episódios</h2>";
+function episodios(season){
+ const det = document.getElementById("detalhes");
+ det.innerHTML="<h2>Episódios</h2>";
 
  season.episodes.forEach(ep=>{
   const btn=document.createElement("button");
   btn.innerText=ep.title;
-  btn.onclick=()=>mostrarPlayer(ep.languages);
-  detalhes.appendChild(btn);
+  btn.onclick=()=>escolherIdioma(ep.languages);
+  det.appendChild(btn);
  });
 }
 
-function mostrarPlayer(langs){
- detalhes.innerHTML="<h2>Escolha idioma</h2>";
+function escolherIdioma(langs){
+ const det = document.getElementById("detalhes");
+ det.innerHTML="<h2>Idioma</h2>";
 
  langs.forEach(l=>{
   const btn=document.createElement("button");
   btn.innerText=l.lang;
   btn.onclick=()=>assistir(l.url,l.type);
-  detalhes.appendChild(btn);
+  det.appendChild(btn);
  });
 }
 
 function assistir(url,type){
+ const player = document.getElementById("player");
+
  if(type==="youtube"){
   player.innerHTML=`<iframe width="80%" height="400" src="https://www.youtube.com/embed/${url}" allowfullscreen></iframe>`;
  }
