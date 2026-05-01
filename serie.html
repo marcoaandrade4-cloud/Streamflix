@@ -1,54 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Série</title>
+
+<style>
+body{background:#000;color:white;font-family:Arial;text-align:center;}
+button{
+  display:block;
+  margin:10px auto;
+  padding:10px;
+  width:200px;
+  cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<h1 id="title"></h1>
+
+<div id="temporadas"></div>
+<div id="episodios"></div>
+<div id="idiomas"></div>
+<div id="player"></div>
+
 <script>
 const data = JSON.parse(localStorage.getItem("serie"));
 
 title.innerText = data.title;
 
+// 👉 MOSTRAR TEMPORADAS
 if(!data.seasons || data.seasons.length === 0){
-  temporadas.innerHTML = "<p>Sem temporadas ainda...</p>";
+  temporadas.innerHTML = "<p>Sem temporadas ainda</p>";
 } else {
+  temporadas.innerHTML = "<h2>Temporadas</h2>";
+
   data.seasons.forEach((s,i)=>{
-    const btn=document.createElement("button");
-    btn.innerText="Temporada "+(i+1);
-    btn.onclick=()=>mostrarEp(s);
+    const btn = document.createElement("button");
+    btn.innerText = "Temporada " + (i+1);
+
+    btn.onclick = () => mostrarEpisodios(s);
+
     temporadas.appendChild(btn);
   });
 }
 
-function mostrarEp(season){
- if(!season.episodes || season.episodes.length === 0){
-   episodios.innerHTML = "<p>Sem episódios...</p>";
-   return;
- }
+// 👉 MOSTRAR EPISÓDIOS
+function mostrarEpisodios(season){
+  episodios.innerHTML = "<h2>Episódios</h2>";
+  idiomas.innerHTML = "";
+  player.innerHTML = "";
 
- episodios.innerHTML="";
+  if(!season.episodes || season.episodes.length === 0){
+    episodios.innerHTML += "<p>Sem episódios</p>";
+    return;
+  }
 
- season.episodes.forEach(ep=>{
-  const btn=document.createElement("button");
-  btn.innerText=ep.title;
-  btn.onclick=()=>idioma(ep.languages);
-  episodios.appendChild(btn);
- });
+  season.episodes.forEach(ep=>{
+    const btn = document.createElement("button");
+    btn.innerText = ep.title;
+
+    btn.onclick = () => mostrarIdiomas(ep.languages);
+
+    episodios.appendChild(btn);
+  });
 }
 
-function idioma(langs){
- if(!langs || langs.length === 0){
-   episodios.innerHTML = "<p>Sem idioma...</p>";
-   return;
- }
+// 👉 MOSTRAR IDIOMAS
+function mostrarIdiomas(langs){
+  idiomas.innerHTML = "<h2>Idiomas</h2>";
+  player.innerHTML = "";
 
- episodios.innerHTML="";
+  if(!langs || langs.length === 0){
+    idiomas.innerHTML += "<p>Sem idiomas</p>";
+    return;
+  }
 
- langs.forEach(l=>{
-  const btn=document.createElement("button");
-  btn.innerText=l.lang;
-  btn.onclick=()=>play(l.url,l.type);
-  episodios.appendChild(btn);
- });
+  langs.forEach(l=>{
+    const btn = document.createElement("button");
+    btn.innerText = l.lang;
+
+    btn.onclick = () => assistir(l.url, l.type);
+
+    idiomas.appendChild(btn);
+  });
 }
 
-function play(url,type){
- if(type==="youtube"){
-  player.innerHTML=`<iframe width="90%" height="400" src="https://www.youtube.com/embed/${url}"></iframe>`;
- }
+// 👉 PLAYER
+function assistir(url,type){
+  if(type==="youtube"){
+    player.innerHTML = `<iframe width="90%" height="400"
+      src="https://www.youtube.com/embed/${url}"
+      allowfullscreen></iframe>`;
+  }
+
+  if(type==="mp4"){
+    player.innerHTML = `<video controls width="90%">
+      <source src="${url}">
+    </video>`;
+  }
+
+  if(type==="drive"){
+    player.innerHTML = `<iframe width="90%" height="400"
+      src="${url}"></iframe>`;
+  }
 }
 </script>
+
+</body>
+</html>
