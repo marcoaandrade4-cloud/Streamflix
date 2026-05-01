@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Admin</title>
+
+  <style>
+    body {
+      background: #111;
+      color: white;
+      font-family: Arial;
+      text-align: center;
+    }
+
+    input, textarea, select {
+      display: block;
+      margin: 10px auto;
+      padding: 10px;
+      width: 250px;
+    }
+
+    button {
+      padding: 10px;
+      background: red;
+      color: white;
+      border: none;
+    }
+
+    #panel { display: none; }
+  </style>
+</head>
+
+<body>
+
+<h1>PAINEL ADM</h1>
+
+<div id="login">
+  <input id="user" placeholder="Usuário">
+  <input id="pass" type="password" placeholder="Senha">
+  <button onclick="login()">Entrar</button>
+</div>
+
+<div id="panel">
+  <input id="title" placeholder="Título">
+  <input id="cover" placeholder="URL da capa">
+  <textarea id="desc" placeholder="Sinopse"></textarea>
+  <input id="video" placeholder="Link do vídeo">
+
+  <select id="type">
+    <option value="youtube">YouTube</option>
+    <option value="drive">Drive</option>
+    <option value="mp4">MP4</option>
+  </select>
+
+  <button onclick="salvar()">Salvar</button>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const app = initializeApp({
+    apiKey: "AIzaSyBkpOKakidlZ2WVZNBI9oEFHEjs1EqCt78",
+    authDomain: "streamflix-62461.firebaseapp.com",
+    projectId: "streamflix-62461"
+  });
+
+  const db = getFirestore(app);
+
+  window.login = function () {
+    if (
+      document.getElementById("user").value === "marco" &&
+      document.getElementById("pass").value === "22510827"
+    ) {
+      document.getElementById("panel").style.display = "block";
+      document.getElementById("login").style.display = "none";
+    } else {
+      alert("Login errado");
+    }
+  };
+
+  window.salvar = async function () {
+    await addDoc(collection(db, "movies"), {
+      title: document.getElementById("title").value,
+      cover: document.getElementById("cover").value,
+      description: document.getElementById("desc").value,
+      videoUrl: document.getElementById("video").value,
+      videoType: document.getElementById("type").value
+    });
+
+    alert("Salvo!");
+  };
+</script>
+
+</body>
+</html>
