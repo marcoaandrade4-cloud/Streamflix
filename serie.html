@@ -5,15 +5,11 @@
 <title>Série</title>
 
 <style>
-body{background:#000;color:white;font-family:Arial;text-align:center}
+body{background:#000;color:#fff;font-family:Arial;text-align:center}
 button{
-  display:block;
-  margin:10px auto;
-  padding:10px;
-  width:200px;
-  background:#111;
-  color:white;
-  border:1px solid #333;
+ display:block;margin:10px auto;
+ padding:10px;width:200px;
+ background:#111;color:#fff;border:1px solid #333;
 }
 h2{margin-top:20px}
 </style>
@@ -33,15 +29,13 @@ const data = JSON.parse(localStorage.getItem("serie"));
 
 title.innerText = data.title;
 
-// RESET TUDO
 function limpar(){
  episodios.innerHTML="";
  idiomas.innerHTML="";
  player.innerHTML="";
 }
 
-// ===== TEMPORADAS =====
-temporadas.innerHTML = "<h2>Temporadas</h2>";
+temporadas.innerHTML="<h2>Temporadas</h2>";
 
 data.seasons.forEach((s,i)=>{
  const btn=document.createElement("button");
@@ -55,7 +49,6 @@ data.seasons.forEach((s,i)=>{
  temporadas.appendChild(btn);
 });
 
-// ===== EPISÓDIOS =====
 function mostrarEp(season){
  episodios.innerHTML="<h2>Episódios</h2>";
 
@@ -73,7 +66,6 @@ function mostrarEp(season){
  });
 }
 
-// ===== IDIOMAS =====
 function mostrarIdiomas(langs){
  idiomas.innerHTML="<h2>Idiomas</h2>";
 
@@ -90,11 +82,9 @@ function mostrarIdiomas(langs){
  });
 }
 
-// ===== PLAYER =====
 function assistir(url,type){
  if(type==="youtube"){
-  player.innerHTML=`
-  <iframe width="90%" height="400"
+  player.innerHTML=`<iframe width="90%" height="400"
   src="https://www.youtube.com/embed/${url}"
   allowfullscreen></iframe>`;
  }
@@ -102,4 +92,4 @@ function assistir(url,type){
 </script>
 
 </body>
-  </html>
+</html>
