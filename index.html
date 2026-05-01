@@ -10,10 +10,12 @@
       background: #0f0f0f;
       color: white;
       font-family: Arial;
-      text-align: center;
     }
 
-    h1 { color: red; }
+    h1 {
+      color: red;
+      text-align: center;
+    }
 
     .grid {
       display: flex;
@@ -27,6 +29,7 @@
       width: 150px;
       cursor: pointer;
       transition: 0.3s;
+      text-align: center;
     }
 
     .card img {
@@ -36,6 +39,11 @@
 
     .card:hover {
       transform: scale(1.05);
+    }
+
+    #player {
+      text-align: center;
+      margin: 20px;
     }
 
     input, textarea, select {
@@ -55,6 +63,14 @@
 
     #adminPanel {
       display: none;
+      border-top: 1px solid #333;
+      margin-top: 20px;
+      padding-top: 20px;
+      text-align: center;
+    }
+
+    #login {
+      text-align: center;
     }
   </style>
 </head>
@@ -63,6 +79,12 @@
 
 <h1>STREAMFLIX 🎬</h1>
 
+<!-- PLAYER -->
+<div id="player"></div>
+
+<!-- CATÁLOGO -->
+<div id="catalogo" class="grid"></div>
+
 <!-- LOGIN -->
 <div id="login">
   <h2>Login ADM</h2>
@@ -70,12 +92,6 @@
   <input id="pass" type="password" placeholder="Senha">
   <button onclick="login()">Entrar</button>
 </div>
-
-<!-- CATÁLOGO -->
-<div id="catalogo" class="grid"></div>
-
-<!-- PLAYER -->
-<div id="player"></div>
 
 <!-- ADMIN -->
 <div id="adminPanel">
@@ -111,23 +127,29 @@
   const catalogo = document.getElementById("catalogo");
   const player = document.getElementById("player");
 
-  // 🔐 LOGIN
+  // LOGIN
   window.login = function () {
     const user = document.getElementById("user").value;
     const pass = document.getElementById("pass").value;
 
     if (user === "marco" && pass === "22510827") {
       document.getElementById("adminPanel").style.display = "block";
-      document.getElementById("login").style.display = "none";
+      alert("Logado!");
     } else {
       alert("Login errado");
     }
   };
 
-  // 📺 CARREGAR
+  // CARREGAR CATÁLOGO
   async function carregar() {
     catalogo.innerHTML = "";
+
     const snap = await getDocs(collection(db, "movies"));
+
+    if (snap.empty) {
+      catalogo.innerHTML = "<p>Nenhum filme ainda...</p>";
+      return;
+    }
 
     snap.forEach(doc => {
       const m = doc.data();
@@ -146,7 +168,7 @@
     });
   }
 
-  // ▶️ PLAYER
+  // PLAYER
   function assistir(url, type) {
     if (type === "mp4") {
       player.innerHTML = `<video controls width="80%"><source src="${url}"></video>`;
@@ -163,7 +185,7 @@
     window.scrollTo(0, 0);
   }
 
-  // 💾 SALVAR
+  // SALVAR
   window.salvar = async function () {
     await addDoc(collection(db, "movies"), {
       title: document.getElementById("title").value,
