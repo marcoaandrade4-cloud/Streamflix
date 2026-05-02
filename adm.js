@@ -1,30 +1,29 @@
 let tempLinks = {};
 let listaDB = [];
 let atual = null;
+let tempAtual = 0;
 
 /* LOGIN */
 function login(){
-  const u = document.getElementById("user").value;
-  const p = document.getElementById("pass").value;
-
-  if(u==="marco" && p==="22510827"){
-    document.getElementById("painel").style.display="block";
+  if(user.value==="marco" && pass.value==="22510827"){
+    painel.style.display="block";
     carregarLista();
-  }else{
-    alert("Senha errada");
-  }
+  }else alert("Senha errada");
 }
 
-/* CARREGAR LISTA */
+/* CARREGAR */
 function carregarLista(){
-  const lista = document.getElementById("lista");
-
   db.collection("conteudo").get().then(snap=>{
     lista.innerHTML="";
     listaDB=[];
 
     snap.forEach(doc=>{
-      listaDB.push({id:doc.id, ...doc.data()});
+      let data = doc.data();
+
+      // GARANTE estrutura
+      if(!data.temporadas) data.temporadas = [];
+
+      listaDB.push({id:doc.id,...data});
     });
 
     listaDB.forEach((s,i)=>{
@@ -35,24 +34,23 @@ function carregarLista(){
 
 /* SELECIONAR */
 function selecionarSerie(){
-  const lista = document.getElementById("lista");
   atual = listaDB[lista.value];
-
   if(!atual) return;
 
   mostrarTemporadas();
-  document.getElementById("areaEps").innerHTML="";
+  areaEps.innerHTML="";
 }
 
-/* MOSTRAR TEMPORADAS */
+/* MOSTRAR TEMP */
 function mostrarTemporadas(){
-  let area = document.getElementById("areaTemp");
-  area.innerHTML="";
+  areaTemp.innerHTML="";
 
-  (atual.temporadas || []).forEach((t,i)=>{
-    area.innerHTML += `
+  atual.temporadas.forEach((t,i)=>{
+    if(!t.episodios) t.episodios=[];
+
+    areaTemp.innerHTML += `
       <div>
-        Temporada ${i}
+        Temporada ${i+1}
         <button onclick="abrirTemp(${i})">Abrir</button>
         <button onclick="removerTemp(${i})">❌</button>
       </div>
@@ -62,22 +60,23 @@ function mostrarTemporadas(){
 
 /* ABRIR TEMP */
 function abrirTemp(i){
-  let area = document.getElementById("areaEps");
-  area.innerHTML="";
+  tempAtual = i;
 
-  let eps = atual.temporadas[i].episodios || [];
+  areaEps.innerHTML="";
+
+  let eps = atual.temporadas[i].episodios;
 
   if(eps.length === 0){
-    area.innerHTML = "<p>Sem episódios</p>";
+    areaEps.innerHTML = "<p>Sem episódios</p>";
     return;
   }
 
   eps.forEach((ep,index)=>{
-    area.innerHTML += `
+    areaEps.innerHTML += `
       <div>
         ${ep.titulo}
-        <button onclick="editarEp(${i},${index})">✏️</button>
-        <button onclick="removerEp(${i},${index})">❌</button>
+        <button onclick="editarEp(${index})">✏️</button>
+        <button onclick="removerEp(${index})">❌</button>
       </div>
     `;
   });
@@ -92,26 +91,27 @@ function criar(){
     tipo:tipo.value,
     temporadas:[{episodios:[]}]
   }).then(()=>{
-    alert("Criado!");
     carregarLista();
   });
 }
 
 /* ADD TEMP */
 function addTemp(){
-  if(!atual) return alert("Selecione uma série");
+  if(!atual) return alert("Selecione série");
 
   atual.temporadas.push({episodios:[]});
   salvarAtual();
 }
 
-/* REMOVER TEMP */
+/* REMOVER TEMP CORRETO */
 function removerTemp(i){
+  if(!confirm("Remover temporada?")) return;
+
   atual.temporadas.splice(i,1);
   salvarAtual();
 }
 
-/* ADD IDIOMA */
+/* IDIOMA */
 function addIdioma(){
   tempLinks[idioma.value] = link.value;
   idioma.value="";
@@ -120,9 +120,11 @@ function addIdioma(){
 
 /* SALVAR EP */
 function salvarEp(){
-  if(!atual) return alert("Selecione uma série");
+  if(!atual) return alert("Selecione série");
 
   let t = parseInt(temp.value);
+
+  if(isNaN(t)) t = tempAtual;
 
   if(!atual.temporadas[t]){
     alert("Temporada inválida");
@@ -139,29 +141,28 @@ function salvarEp(){
   salvarAtual();
 }
 
-/* EDITAR EP */
-function editarEp(t,i){
-  let ep = atual.temporadas[t].episodios[i];
+/* EDITAR */
+function editarEp(i){
+  let ep = atual.temporadas[tempAtual].episodios[i];
 
   tituloEp.value = ep.titulo;
-  temp.value = t;
+  temp.value = tempAtual;
   tempLinks = {...ep.links};
 
-  atual.temporadas[t].episodios.splice(i,1);
-
+  atual.temporadas[tempAtual].episodios.splice(i,1);
   salvarAtual();
 }
 
 /* REMOVER EP */
-function removerEp(t,i){
-  atual.temporadas[t].episodios.splice(i,1);
+function removerEp(i){
+  atual.temporadas[tempAtual].episodios.splice(i,1);
   salvarAtual();
 }
 
-/* SALVAR FIREBASE */
+/* SALVAR */
 function salvarAtual(){
   db.collection("conteudo").doc(atual.id).set(atual).then(()=>{
     carregarLista();
-    setTimeout(()=>selecionarSerie(), 300);
+    setTimeout(()=>selecionarSerie(), 200);
   });
 }
