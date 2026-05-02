@@ -1,20 +1,199 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <title>Stream Flix</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chat Noir Brasil</title>
+
+<style>
+body {
+  margin:0;
+  background:#000;
+  color:#fff;
+  font-family:Arial;
+}
+
+header {
+  background:#0a0;
+  padding:10px;
+  display:flex;
+  justify-content:space-between;
+}
+
+button {
+  background:#0f0;
+  border:none;
+  padding:8px 12px;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+.grid {
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+  padding:10px;
+}
+
+.card {
+  background:#111;
+  padding:10px;
+  border-radius:10px;
+}
+
+.card img {
+  width:100%;
+  border-radius:10px;
+}
+
+#player video {
+  width:100%;
+}
+
+.hidden {display:none;}
+
+.admin {
+  background:#111;
+  padding:10px;
+  margin:10px;
+  border-radius:10px;
+}
+</style>
 </head>
+
 <body>
 
 <header>
-  <h1>Stream Flix</h1>
+  <h2>🐾 Chat Noir Brasil</h2>
+  <button onclick="toggleAdmin()">ADM</button>
 </header>
 
-<main id="app">
-  <p style="text-align:center">Carregando...</p>
-</main>
+<!-- HOME -->
+<div id="home">
+  <h3 style="text-align:center">Temporadas</h3>
+  <div class="grid" id="grid"></div>
+</div>
 
-<script src="app.js"></script>
+<!-- PLAYER -->
+<div id="player" class="hidden">
+  <button onclick="voltar()">⬅ Voltar</button>
+
+  <h2 id="titulo"></h2>
+
+  <div id="idiomas"></div>
+
+  <video id="video" controls></video>
+</div>
+
+<!-- ADMIN -->
+<div id="admin" class="admin hidden">
+
+  <h3>Modo ADM</h3>
+
+  <input id="tituloEp" placeholder="Título"><br><br>
+  <input id="thumbEp" placeholder="Imagem URL"><br><br>
+
+  <h4>Idiomas</h4>
+  <input id="idiomaNome" placeholder="BR / EN / FR">
+  <input id="idiomaLink" placeholder="Link do vídeo">
+  <button onclick="addIdioma()">+ Idioma</button>
+
+  <ul id="listaIdiomas"></ul>
+
+  <br>
+  <button onclick="salvarEp()">Salvar Episódio</button>
+
+</div>
+
+<script>
+let dados = JSON.parse(localStorage.getItem("eps")) || [
+  {
+    id:1,
+    titulo:"Episódio 1",
+    thumb:"https://via.placeholder.com/300x400",
+    idiomas:[
+      {nome:"BR", link:"https://www.w3schools.com/html/mov_bbb.mp4"}
+    ]
+  }
+];
+
+let idiomasTemp = [];
+
+function render(){
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+
+  dados.forEach(ep=>{
+    grid.innerHTML += `
+      <div class="card" onclick="abrir(${ep.id})">
+        <img src="${ep.thumb}">
+        <h4>${ep.titulo}</h4>
+      </div>
+    `;
+  });
+}
+
+function abrir(id){
+  const ep = dados.find(e=>e.id==id);
+
+  document.getElementById("home").classList.add("hidden");
+  document.getElementById("player").classList.remove("hidden");
+
+  document.getElementById("titulo").innerText = ep.titulo;
+
+  const idiomasDiv = document.getElementById("idiomas");
+  idiomasDiv.innerHTML = "";
+
+  ep.idiomas.forEach(i=>{
+    idiomasDiv.innerHTML += `
+      <button onclick="trocar('${i.link}')">${i.nome}</button>
+    `;
+  });
+
+  trocar(ep.idiomas[0].link);
+}
+
+function trocar(link){
+  document.getElementById("video").src = link;
+}
+
+function voltar(){
+  document.getElementById("player").classList.add("hidden");
+  document.getElementById("home").classList.remove("hidden");
+}
+
+function toggleAdmin(){
+  document.getElementById("admin").classList.toggle("hidden");
+}
+
+function addIdioma(){
+  const nome = document.getElementById("idiomaNome").value;
+  const link = document.getElementById("idiomaLink").value;
+
+  idiomasTemp.push({nome, link});
+
+  document.getElementById("listaIdiomas").innerHTML += `<li>${nome}</li>`;
+}
+
+function salvarEp(){
+  const titulo = document.getElementById("tituloEp").value;
+  const thumb = document.getElementById("thumbEp").value;
+
+  dados.push({
+    id:Date.now(),
+    titulo,
+    thumb,
+    idiomas:idiomasTemp
+  });
+
+  localStorage.setItem("eps", JSON.stringify(dados));
+
+  alert("Salvo!");
+  location.reload();
+}
+
+render();
+</script>
+
 </body>
 </html>
