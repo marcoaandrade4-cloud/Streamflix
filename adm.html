@@ -15,7 +15,7 @@
 
 <div id="painel" style="display:none">
 
-<h3>Criar</h3>
+<h3>Criar Conteúdo</h3>
 <input id="nome" placeholder="Nome">
 <input id="img" placeholder="Imagem">
 <input id="categoria" placeholder="Categoria">
@@ -29,10 +29,20 @@
 
 <hr>
 
-<select id="lista"></select>
-<button onclick="addTemp()">+ Temporada</button>
+<h3>Selecionar Série</h3>
 
-<h3>Episódio</h3>
+<select id="lista"></select>
+<button onclick="selecionarSerie()">Selecionar</button>
+
+<hr>
+
+<h3>Temporadas</h3>
+<button onclick="addTemp()">+ Temporada</button>
+<div id="areaTemp"></div>
+
+<hr>
+
+<h3>Episódios</h3>
 
 <input id="tituloEp" placeholder="Título">
 <input id="temp" placeholder="Temporada (0)">
@@ -43,12 +53,7 @@
 
 <label><input type="checkbox" id="novo"> Novo episódio</label>
 
-<button onclick="salvarEp()">Salvar</button>
-
-<hr>
-
-<h3>Episódios existentes</h3>
-<button onclick="mostrarEpisodios()">Carregar episódios</button>
+<button onclick="salvarEp()">Salvar Episódio</button>
 
 <div id="areaEps"></div>
 
