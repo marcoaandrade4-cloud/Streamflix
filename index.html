@@ -5,50 +5,31 @@
 <title>Stream Flix</title>
 
 <style>
-body {
-  margin: 0;
-  background: #000;
-  color: #fff;
-  font-family: Arial;
-}
+body { margin:0; background:#000; color:#fff; font-family:Arial; }
+header { background:#111; padding:15px; text-align:center; }
+.banner { text-align:center; color:#00ff00; padding:10px; }
 
-header {
-  background: #111;
-  padding: 15px;
-  text-align: center;
-}
-
-.banner {
-  text-align: center;
-  color: #00ff00;
-  padding: 15px;
+.grid {
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+  padding:10px;
 }
 
 .card {
-  background: #111;
-  margin: 15px;
-  padding: 15px;
-  border-radius: 10px;
+  background:#111;
+  padding:10px;
+  border-radius:10px;
 }
+
+img { width:100%; border-radius:10px; }
 
 button {
-  background: #00ff00;
-  border: none;
-  padding: 10px;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  padding: 10px;
-}
-
-img {
-  width: 100%;
-  border-radius: 10px;
+  background:#00ff00;
+  border:none;
+  padding:8px;
+  border-radius:8px;
+  cursor:pointer;
 }
 </style>
 </head>
@@ -64,29 +45,45 @@ img {
 </div>
 
 <div id="novo"></div>
-
 <div id="conteudo"></div>
 
-<!-- Firebase -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, getDocs, query, orderBy, doc, getDoc, where } 
+import { getFirestore, collection, getDocs, query, orderBy, where, doc, getDoc }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// 🔥 SUA CONFIG
+// 🔥 CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyBkpOKakidlZ2WVZNBI9oEFHEjs1EqCt78",
   authDomain: "streamflix-62461.firebaseapp.com",
-  projectId: "streamflix-62461",
-  storageBucket: "streamflix-62461.firebasestorage.app",
-  messagingSenderId: "894473429433",
-  appId: "1:894473429433:web:51a0215903fbb277305668"
+  projectId: "streamflix-62461"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// 🔥 ROTEAMENTO SIMPLES
+// 🔥 DADOS FALLBACK (se Firebase falhar)
+const fallback = {
+  series: [
+    {
+      id: "1",
+      nome: "Miraculous",
+      capa: "https://i.imgur.com/2DhmtJ4.jpg"
+    }
+  ],
+  episodios: [
+    {
+      id: "1",
+      serie: "1",
+      nome: "Ep 1 - Origem",
+      ordem: 1,
+      capa: "https://i.imgur.com/2DhmtJ4.jpg",
+      video: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+    }
+  ]
+};
+
+// 🔥 ROTEAMENTO
 const params = new URLSearchParams(window.location.search);
 const serieId = params.get("serie");
 const epId = params.get("ep");
@@ -102,36 +99,57 @@ function player(link) {
   return `<video src="${link}" controls width="100%"></video>`;
 }
 
-// 🔥 NOVO EPISÓDIO (NUNCA SOME)
-async function novoEp() {
-  const q = query(collection(db, "episodios"), orderBy("ordem"));
-  const snap = await getDocs(q);
+// 🔥 CARREGAR DADOS (Firebase ou fallback)
+async function getSeries() {
+  try {
+    const snap = await getDocs(collection(db, "series"));
+    if (snap.empty) throw "vazio";
 
-  let ultimo;
-  snap.forEach(doc => ultimo = doc);
+    let arr = [];
+    snap.forEach(doc => arr.push({ id: doc.id, ...doc.data() }));
+    return arr;
 
-  if (ultimo) {
-    const ep = ultimo.data();
-
-    document.getElementById("novo").innerHTML = `
-      <div class="card">
-        <h2>Novo episódio!</h2>
-        <p>${ep.nome}</p>
-        <button onclick="abrirEp('${ultimo.id}')">Assistir</button>
-      </div>
-    `;
+  } catch {
+    return fallback.series;
   }
+}
+
+async function getEpisodios() {
+  try {
+    const snap = await getDocs(query(collection(db, "episodios"), orderBy("ordem")));
+    if (snap.empty) throw "vazio";
+
+    let arr = [];
+    snap.forEach(doc => arr.push({ id: doc.id, ...doc.data() }));
+    return arr;
+
+  } catch {
+    return fallback.episodios;
+  }
+}
+
+// 🔥 NOVO EP
+async function novoEp() {
+  const eps = await getEpisodios();
+  const ultimo = eps[eps.length - 1];
+
+  document.getElementById("novo").innerHTML = `
+    <div class="card">
+      <h2>Novo episódio!</h2>
+      <p>${ultimo.nome}</p>
+      <button onclick="abrirEp('${ultimo.id}')">Assistir</button>
+    </div>
+  `;
 }
 
 // 🔥 HOME
 async function home() {
-  const snap = await getDocs(collection(db, "series"));
-  let html = '<div class="grid">';
+  const series = await getSeries();
 
-  snap.forEach(doc => {
-    const s = doc.data();
+  let html = '<div class="grid">';
+  series.forEach(s => {
     html += `
-      <div onclick="abrirSerie('${doc.id}')">
+      <div onclick="abrirSerie('${s.id}')">
         <img src="${s.capa}">
         <p>${s.nome}</p>
       </div>
@@ -144,23 +162,15 @@ async function home() {
 
 // 🔥 SÉRIE
 async function serie(id) {
-  const q = query(
-    collection(db, "episodios"),
-    where("serie", "==", id),
-    orderBy("ordem")
-  );
+  const eps = await getEpisodios();
 
-  const snap = await getDocs(q);
   let html = "";
-
-  snap.forEach(doc => {
-    const ep = doc.data();
-
+  eps.filter(e => e.serie == id).forEach(ep => {
     html += `
       <div class="card">
         <img src="${ep.capa}">
         <h3>${ep.nome}</h3>
-        <button onclick="abrirEp('${doc.id}')">Assistir</button>
+        <button onclick="abrirEp('${ep.id}')">Assistir</button>
       </div>
     `;
   });
@@ -168,10 +178,10 @@ async function serie(id) {
   document.getElementById("conteudo").innerHTML = html;
 }
 
-// 🔥 PLAYER PAGE
+// 🔥 EPISÓDIO
 async function episodio(id) {
-  const docSnap = await getDoc(doc(db, "episodios", id));
-  const ep = docSnap.data();
+  const eps = await getEpisodios();
+  const ep = eps.find(e => e.id == id);
 
   document.getElementById("conteudo").innerHTML = `
     <div class="card">
@@ -182,24 +192,15 @@ async function episodio(id) {
 }
 
 // 🔥 NAVEGAÇÃO
-window.abrirSerie = (id) => {
-  window.location.search = "?serie=" + id;
-};
+window.abrirSerie = (id) => location.search = "?serie=" + id;
+window.abrirEp = (id) => location.search = "?ep=" + id;
 
-window.abrirEp = (id) => {
-  window.location.search = "?ep=" + id;
-};
-
-// 🔥 INICIAR
+// 🔥 INIT
 novoEp();
 
-if (epId) {
-  episodio(epId);
-} else if (serieId) {
-  serie(serieId);
-} else {
-  home();
-}
+if (epId) episodio(epId);
+else if (serieId) serie(serieId);
+else home();
 
 </script>
 
