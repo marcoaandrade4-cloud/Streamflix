@@ -1,16 +1,90 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
-<link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>Série</title>
+
+<style>
+body{background:#000;color:#fff;font-family:Arial;text-align:center}
+button{margin:5px;padding:10px;border-radius:8px;border:none;background:#0f0;cursor:pointer}
+#player iframe{width:90%;height:300px;margin-top:20px}
+</style>
 </head>
 
 <body>
 
-<h2 id="titulo"></h2>
+<h1 id="titulo"></h1>
 
+<h2>Temporadas</h2>
 <div id="temporadas"></div>
+
+<h2>Episódios</h2>
 <div id="episodios"></div>
 
-<script src="app.js"></script>
+<h2>Idiomas</h2>
+<div id="idiomas"></div>
+
+<div id="player"></div>
+
+<script>
+let catalogo = JSON.parse(localStorage.getItem("catalogo")) || [];
+let id = new URLSearchParams(location.search).get("id");
+let serie = catalogo[id];
+
+document.getElementById("titulo").innerText = serie.titulo;
+
+let tempAtual = null;
+let epAtual = null;
+
+function renderTemporadas(){
+  let div = document.getElementById("temporadas");
+  div.innerHTML="";
+
+  serie.temporadas.forEach((t,i)=>{
+    div.innerHTML+=`<button onclick="selTemp(${i})">Temporada ${i+1}</button>`;
+  });
+}
+
+function selTemp(i){
+  tempAtual=i;
+  renderEps();
+}
+
+function renderEps(){
+  let div = document.getElementById("episodios");
+  div.innerHTML="";
+
+  serie.temporadas[tempAtual].episodios.forEach((ep,i)=>{
+    div.innerHTML+=`<button onclick="selEp(${i})">Episódio ${i+1}</button>`;
+  });
+}
+
+function selEp(i){
+  epAtual=i;
+  renderLang();
+}
+
+function renderLang(){
+  let div = document.getElementById("idiomas");
+  div.innerHTML="";
+
+  let ep = serie.temporadas[tempAtual].episodios[epAtual];
+
+  Object.keys(ep.links).forEach(lang=>{
+    div.innerHTML+=`
+      <button onclick="play('${ep.links[lang]}')">${lang}</button>
+    `;
+  });
+}
+
+function play(link){
+  document.getElementById("player").innerHTML=`
+    <iframe src="${link}" allowfullscreen></iframe>
+  `;
+}
+
+renderTemporadas();
+</script>
+
 </body>
 </html>
