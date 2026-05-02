@@ -7,12 +7,75 @@
 </head>
 <body>
 
-<h2 id="tituloEp"></h2>
+<h2 id="titulo"></h2>
 
+<h3>Escolher idioma</h3>
 <div id="idiomas"></div>
 
-<iframe id="player" width="100%" height="300"></iframe>
+<div id="player"></div>
 
-<script src="script.js"></script>
+<script>
+let ep = JSON.parse(localStorage.getItem("ep"));
+
+if(!ep){
+  document.body.innerHTML = "<h2>Erro ao carregar episódio</h2>";
+}else{
+
+  document.getElementById("titulo").innerText = ep.titulo || "Episódio";
+
+  let idiomasDiv = document.getElementById("idiomas");
+  let playerDiv = document.getElementById("player");
+
+  function criarPlayer(link){
+
+    playerDiv.innerHTML = "";
+
+    // YOUTUBE
+    if(link.includes("youtube.com") || link.includes("youtu.be")){
+      let id = link.split("v=")[1] || link.split("/").pop();
+      let iframe = document.createElement("iframe");
+      iframe.src = "https://www.youtube.com/embed/" + id;
+      iframe.width = "100%";
+      iframe.height = "300";
+      iframe.allowFullscreen = true;
+      playerDiv.appendChild(iframe);
+    }
+
+    // GOOGLE DRIVE
+    else if(link.includes("drive.google.com")){
+      let id = link.split("/d/")[1]?.split("/")[0];
+      let iframe = document.createElement("iframe");
+      iframe.src = "https://drive.google.com/file/d/" + id + "/preview";
+      iframe.width = "100%";
+      iframe.height = "300";
+      iframe.allow = "autoplay";
+      playerDiv.appendChild(iframe);
+    }
+
+    // LINK NORMAL
+    else{
+      let video = document.createElement("video");
+      video.src = link;
+      video.controls = true;
+      video.width = "100%";
+      playerDiv.appendChild(video);
+    }
+  }
+
+  // CRIAR BOTÕES DE IDIOMA
+  for(let lang in ep.links){
+    let btn = document.createElement("button");
+    btn.innerText = lang;
+
+    btn.onclick = ()=>{
+      criarPlayer(ep.links[lang]);
+    };
+
+    idiomasDiv.appendChild(btn);
+  }
+
+}
+</script>
+
 </body>
 </html>
