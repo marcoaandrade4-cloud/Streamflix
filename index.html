@@ -3,21 +3,59 @@
 <head>
 <meta charset="UTF-8">
 <title>STREAMFLIX</title>
-<link rel="stylesheet" href="style.css">
+
+<style>
+body{background:#000;color:#fff;font-family:Arial;margin:0}
+header{display:flex;justify-content:space-between;padding:10px;background:#111}
+h1{color:red}
+.grid{display:flex;flex-wrap:wrap;gap:15px;padding:15px}
+.card{width:150px;cursor:pointer}
+.card img{width:100%;border-radius:10px}
+button{background:#0f0;border:none;padding:10px;border-radius:8px;cursor:pointer}
+</style>
 </head>
 
 <body>
 
-<header class="topo">
-  <h1>STREAMFLIX 🎬</h1>
-
-  <input id="busca" placeholder="Pesquisar...">
-
-  <button class="btn" onclick="irAdmin()">ADM</button>
+<header>
+<h1>STREAMFLIX</h1>
+<button onclick="abrirADM()">ADM</button>
 </header>
 
-<div id="catalogo" class="grid"></div>
+<div class="grid" id="catalogo"></div>
 
-<script src="app.js"></script>
+<script>
+let catalogo = JSON.parse(localStorage.getItem("catalogo")) || [];
+
+function render(){
+  let div = document.getElementById("catalogo");
+  div.innerHTML="";
+
+  catalogo.forEach((item,i)=>{
+    div.innerHTML += `
+      <div class="card" onclick="abrir(${i})">
+        <img src="${item.capa}">
+        <p>${item.titulo}</p>
+      </div>
+    `;
+  });
+}
+
+function abrir(i){
+  window.location.href="serie.html?id="+i;
+}
+
+function abrirADM(){
+  let senha = prompt("Senha:");
+  if(senha==="1234"){
+    window.location.href="adm.html";
+  }else{
+    alert("Senha errada");
+  }
+}
+
+render();
+</script>
+
 </body>
 </html>
