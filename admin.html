@@ -1,37 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="style.css">
+</head>
+
 <body>
 
 <div id="login">
   <input type="password" id="senha" placeholder="Senha">
-  <button onclick="logar()">Entrar</button>
+  <button onclick="login()">Entrar</button>
 </div>
 
 <div id="painel" style="display:none">
 
-<h2>ADMIN STREAMFLIX</h2>
+<h2>ADM STREAMFLIX</h2>
 
 <input id="titulo" placeholder="Título">
 <input id="capa" placeholder="Imagem">
 
-<select id="tipo">
-  <option value="serie">Série</option>
-  <option value="filme">Filme</option>
-</select>
-
-<textarea id="sinopse" placeholder="Sinopse"></textarea>
-<input id="ano" placeholder="Ano">
-
-<button onclick="salvar()">Salvar</button>
+<button onclick="salvarSerie()">Salvar Série</button>
 
 <hr>
 
-<h3>Editar existente</h3>
 <select id="lista"></select>
-<button onclick="carregar()">Editar</button>
+<button onclick="editar()">Editar</button>
 
 <hr>
 
-<h3>Temporadas</h3>
 <button onclick="addTemp()">+ Temporada</button>
+
 <div id="temps"></div>
 
 <button onclick="salvarTudo()">Salvar Tudo</button>
@@ -40,3 +37,4 @@
 
 <script src="app.js"></script>
 </body>
+</html>
