@@ -1,56 +1,61 @@
-const senhaADM = "1234";
+const senhaADM = "22510827";
 let db = JSON.parse(localStorage.getItem("db") || "[]");
-
-/* BOTÃO ADM (FIX) */
-document.addEventListener("DOMContentLoaded", ()=>{
-  let btn = document.getElementById("btnADM");
-  if(btn){
-    btn.addEventListener("click", ()=>{
-      window.location.href = "./adm.html";
-    });
-  }
-});
 
 /* LOGIN */
 function login(){
   if(document.getElementById("senha").value === senhaADM){
-    loginBox.style.display="none";
-    painel.style.display="block";
+    document.getElementById("loginBox").style.display="none";
+    document.getElementById("painel").style.display="block";
     atualizarLista();
   } else alert("Senha errada");
 }
 
 /* DB */
-function salvar(){localStorage.setItem("db", JSON.stringify(db));}
+function salvar(){
+  localStorage.setItem("db", JSON.stringify(db));
+}
 
 /* CRIAR */
 function criarSerie(){
-  db.push({nome:nomeSerie.value,capa:capaSerie.value,temporadas:[]});
-  salvar(); atualizarLista();
+  db.push({
+    nome: document.getElementById("nomeSerie").value,
+    capa: document.getElementById("capaSerie").value,
+    temporadas:[]
+  });
+
+  salvar();
+  atualizarLista();
 }
 
 /* LISTA */
 function atualizarLista(){
-  if(!listaSeries) return;
-  listaSeries.innerHTML="";
+  let select = document.getElementById("listaSeries");
+  if(!select) return;
+
+  select.innerHTML = "";
+
   db.forEach((s,i)=>{
-    listaSeries.innerHTML+=`<option value="${i}">${s.nome}</option>`;
+    select.innerHTML += `<option value="${i}">${s.nome}</option>`;
   });
 }
 
 /* TEMP */
 function addTemp(){
-  let i = listaSeries.value;
+  let i = document.getElementById("listaSeries").value;
+  if(i === "") return alert("Selecione uma série");
+
   db[i].temporadas.push({episodios:[]});
   salvar();
 }
 
 /* EP */
 function addEp(){
-  let i = listaSeries.value;
-  let t = tempNum.value;
+  let i = document.getElementById("listaSeries").value;
+  let t = document.getElementById("tempNum").value;
 
-  if(!db[i] || !db[i].temporadas[t]) return alert("Temporada inválida");
+  if(!db[i] || !db[i].temporadas[t]){
+    return alert("Temporada inválida");
+  }
 
   db.forEach(s=>{
     s.temporadas.forEach(t=>{
@@ -58,14 +63,17 @@ function addEp(){
     });
   });
 
-  let ep={
-    titulo:tituloEpADM.value,
+  let ep = {
+    titulo: document.getElementById("tituloEpADM").value,
     links:{}
   };
 
-  ep.links[lang.value]=link.value;
+  ep.links[document.getElementById("lang").value] =
+    document.getElementById("link").value;
 
-  if(novoEp.checked) ep.novo=true;
+  if(document.getElementById("novoEp").checked){
+    ep.novo = true;
+  }
 
   db[i].temporadas[t].episodios.push(ep);
 
@@ -75,105 +83,121 @@ function addEp(){
 
 /* HOME */
 function carregarHome(){
-  let grid=document.getElementById("grid");
+  let grid = document.getElementById("grid");
   if(!grid) return;
 
-  grid.innerHTML="";
+  grid.innerHTML = "";
 
   db.forEach((s,i)=>{
-    grid.innerHTML+=`
+    grid.innerHTML += `
       <div class="card" onclick="abrirSerie(${i})">
         <img src="${s.capa}">
-      </div>`;
+      </div>
+    `;
   });
 
   let destaque;
+
   db.forEach(s=>{
     s.temporadas.forEach(t=>{
       t.episodios.forEach(ep=>{
-        if(ep.novo) destaque=ep;
+        if(ep.novo) destaque = ep;
       });
     });
   });
 
   if(destaque){
-    epNome.innerText=destaque.titulo;
+    document.getElementById("epNome").innerText = destaque.titulo;
 
-    btnAssistir.onclick=()=>{
-      localStorage.setItem("ep",JSON.stringify(destaque));
-      location.href="./player.html";
+    document.getElementById("btnAssistir").onclick = ()=>{
+      localStorage.setItem("ep", JSON.stringify(destaque));
+      location.href = "player.html";
     };
   }
 }
 
 /* SERIE */
 function abrirSerie(i){
-  localStorage.setItem("serieIndex",i);
-  location.href="./serie.html";
+  localStorage.setItem("serieIndex", i);
+  location.href = "serie.html";
 }
 
 function carregarSeriePage(){
-  let i=localStorage.getItem("serieIndex");
-  if(i==null) return;
+  let i = localStorage.getItem("serieIndex");
+  if(i == null) return;
 
-  let s=db[i];
-  titulo.innerText=s.nome;
+  let s = db[i];
+  document.getElementById("titulo").innerText = s.nome;
+
+  let temporadasDiv = document.getElementById("temporadas");
+  let episodiosDiv = document.getElementById("episodios");
 
   s.temporadas.forEach((t,ti)=>{
-    let b=document.createElement("button");
-    b.innerText="Temporada "+(ti+1);
+    let b = document.createElement("button");
+    b.innerText = "Temporada " + (ti+1);
 
-    b.onclick=()=>{
-      episodios.innerHTML="";
+    b.onclick = ()=>{
+      episodiosDiv.innerHTML = "";
+
       t.episodios.forEach(ep=>{
-        let e=document.createElement("button");
-        e.innerText=ep.titulo;
+        let e = document.createElement("button");
+        e.innerText = ep.titulo;
 
-        e.onclick=()=>{
-          localStorage.setItem("ep",JSON.stringify(ep));
-          location.href="./player.html";
+        e.onclick = ()=>{
+          localStorage.setItem("ep", JSON.stringify(ep));
+          location.href = "player.html";
         };
 
-        episodios.appendChild(e);
+        episodiosDiv.appendChild(e);
       });
     };
 
-    temporadas.appendChild(b);
+    temporadasDiv.appendChild(b);
   });
 }
 
 /* PLAYER */
 function carregarPlayer(){
-  let ep=JSON.parse(localStorage.getItem("ep"));
+  let ep = JSON.parse(localStorage.getItem("ep"));
   if(!ep) return;
 
-  tituloEp.innerText=ep.titulo;
-  idiomas.innerHTML="";
+  document.getElementById("tituloEp").innerText = ep.titulo;
+  let idiomasDiv = document.getElementById("idiomas");
+
+  idiomasDiv.innerHTML = "";
 
   Object.keys(ep.links).forEach(lang=>{
-    let b=document.createElement("button");
-    b.innerText=lang;
+    let b = document.createElement("button");
+    b.innerText = lang;
 
-    b.onclick=()=>{
-      let url=ep.links[lang];
+    b.onclick = ()=>{
+      let url = ep.links[lang];
 
       if(url.includes("youtube")){
-        let id=url.includes("v=")?url.split("v=")[1].split("&")[0]:url.split("/").pop();
-        player.src="https://www.youtube.com/embed/"+id;
+        let id = url.includes("v=")
+          ? url.split("v=")[1].split("&")[0]
+          : url.split("/").pop();
+
+        document.getElementById("player").src =
+          "https://www.youtube.com/embed/" + id;
       }
       else if(url.includes("drive")){
-        let id=url.split("/d/")[1]?.split("/")[0];
-        player.src="https://drive.google.com/file/d/"+id+"/preview";
+        let id = url.split("/d/")[1]?.split("/")[0];
+
+        document.getElementById("player").src =
+          "https://drive.google.com/file/d/"+id+"/preview";
       }
       else{
-        player.src=url;
+        document.getElementById("player").src = url;
       }
     };
 
-    idiomas.appendChild(b);
+    idiomasDiv.appendChild(b);
   });
 
-  idiomas.querySelector("button")?.click();
+  if(idiomasDiv.firstChild){
+    idiomasDiv.firstChild.click();
+  }
 }
 
 /* AUTO */
