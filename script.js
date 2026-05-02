@@ -1,173 +1,133 @@
+// ===== BANCO =====
 let db = JSON.parse(localStorage.getItem("db") || "[]");
 let tempLinks = {};
 
-/* SALVAR */
+// ===== SALVAR =====
 function salvar(){
   localStorage.setItem("db", JSON.stringify(db));
 }
 
-/* LOGIN */
+// ===== LOGIN ADM =====
 function login(){
-  if(user.value==="marco" && pass.value==="22510827"){
-    painel.style.display="block";
+  const u = document.getElementById("user");
+  const p = document.getElementById("pass");
+  const painel = document.getElementById("painel");
+
+  if(!u || !p || !painel) return;
+
+  if(u.value === "marco" && p.value === "22510827"){
+    painel.style.display = "block";
     atualizarLista();
-  }else alert("Senha errada");
-}
-
-/* CRIAR */
-function criar(){
-  db.push({
-    nome:nome.value,
-    img:img.value,
-    categoria:categoria.value,
-    tipo:tipo.value,
-    temporadas:[{episodios:[]}]
-  });
-  salvar();
-  atualizarLista();
-}
-
-/* LISTA */
-function atualizarLista(){
-  if(!lista) return;
-  lista.innerHTML="";
-  db.forEach((s,i)=>{
-    lista.innerHTML+=`<option value="${i}">${s.nome}</option>`;
-  });
-}
-
-/* TEMP */
-function addTemp(){
-  db[lista.value].temporadas.push({episodios:[]});
-  salvar();
-}
-
-/* IDIOMA */
-function addIdioma(){
-  tempLinks[idioma.value] = link.value;
-}
-
-/* EP */
-function salvarEp(){
-  let s=db[lista.value];
-  let t=temp.value;
-
-  if(!s.temporadas[t]) return alert("Temporada inválida");
-
-  db.forEach(s=>s.temporadas.forEach(t=>t.episodios.forEach(ep=>ep.novo=false)));
-
-  s.temporadas[t].episodios.push({
-    titulo:tituloEp.value,
-    links:{...tempLinks},
-    novo:novo.checked
-  });
-
-  tempLinks={};
-  salvar();
-}
-
-/* HOME */
-function render(){
-  let conteudo=document.getElementById("conteudo");
-  if(!conteudo) return;
-
-  conteudo.innerHTML="";
-
-  db.forEach((s,i)=>{
-    conteudo.innerHTML+=`
-    <div class="card" onclick="abrirSerie(${i})">
-      <img src="${s.img}">
-      <p>${s.nome}</p>
-    </div>`;
-  });
-
-  let destaque;
-  db.forEach(s=>s.temporadas.forEach(t=>t.episodios.forEach(ep=>{
-    if(ep.novo) destaque=ep;
-  })));
-
-  if(destaque){
-    novoEp.innerHTML = `
-      <button onclick='abrirPlayer(${JSON.stringify(destaque)})'>
-        ▶ ${destaque.titulo}
-      </button>
-    `;
+  }else{
+    alert("Senha errada");
   }
 }
 
-/* BUSCA */
-function buscar(){
-  let v=busca.value.toLowerCase();
-  conteudo.innerHTML="";
+// ===== ATUALIZAR LISTA =====
+function atualizarLista(){
+  const lista = document.getElementById("lista");
+  if(!lista) return;
 
-  db.filter(s=>s.nome.toLowerCase().includes(v))
-  .forEach((s,i)=>{
-    conteudo.innerHTML+=`
-    <div onclick="abrirSerie(${i})">${s.nome}</div>`;
+  lista.innerHTML = "";
+
+  db.forEach((s,i)=>{
+    let opt = document.createElement("option");
+    opt.value = i;
+    opt.textContent = s.nome;
+    lista.appendChild(opt);
   });
 }
 
-/* SERIE */
-function abrirSerie(i){
-  localStorage.setItem("serieIndex",i);
-  location.href="serie.html";
-}
+// ===== CRIAR FILME/SÉRIE =====
+function criar(){
+  const nome = document.getElementById("nome");
+  const img = document.getElementById("img");
+  const categoria = document.getElementById("categoria");
+  const tipo = document.getElementById("tipo");
 
-function carregarSerie(){
-  let i=localStorage.getItem("serieIndex");
-  if(i==null) return;
+  if(!nome || !img) return;
 
-  let s=db[i];
-  titulo.innerText=s.nome;
-
-  s.temporadas.forEach((t,ti)=>{
-    let b=document.createElement("button");
-    b.innerText="Temporada "+(ti+1);
-
-    b.onclick=()=>{
-      episodios.innerHTML="";
-      t.episodios.forEach(ep=>{
-        let e=document.createElement("button");
-        e.innerText=ep.titulo;
-
-        e.onclick=()=>{
-          localStorage.setItem("ep",JSON.stringify(ep));
-          location.href="player.html";
-        };
-
-        episodios.appendChild(e);
-      });
-    };
-
-    temporadas.appendChild(b);
+  db.push({
+    nome: nome.value,
+    img: img.value,
+    categoria: categoria.value || "Outros",
+    tipo: tipo.value,
+    temporadas: [{episodios:[]}]
   });
+
+  salvar();
+  atualizarLista();
+
+  alert("Criado!");
 }
 
-/* PLAYER */
-function abrirPlayer(ep){
-  localStorage.setItem("ep",JSON.stringify(ep));
-  location.href="player.html";
+// ===== ADICIONAR TEMPORADA =====
+function addTemp(){
+  const lista = document.getElementById("lista");
+  if(!lista) return;
+
+  let s = db[lista.value];
+  if(!s) return;
+
+  s.temporadas.push({episodios:[]});
+
+  salvar();
+  alert("Temporada adicionada");
 }
 
-function carregarPlayer(){
-  let ep=JSON.parse(localStorage.getItem("ep"));
-  if(!ep) return;
+// ===== ADICIONAR IDIOMA =====
+function addIdioma(){
+  const idioma = document.getElementById("idioma");
+  const link = document.getElementById("link");
 
-  tituloEp.innerText=ep.titulo;
+  if(!idioma.value || !link.value){
+    alert("Preencha idioma e link");
+    return;
+  }
 
-  Object.keys(ep.links).forEach(l=>{
-    let b=document.createElement("button");
-    b.innerText=l;
+  tempLinks[idioma.value] = link.value;
 
-    b.onclick=()=>{
-      player.src=ep.links[l];
-    };
+  idioma.value = "";
+  link.value = "";
 
-    idiomas.appendChild(b);
+  alert("Idioma adicionado");
+}
+
+// ===== SALVAR EPISÓDIO =====
+function salvarEp(){
+  const lista = document.getElementById("lista");
+  const temp = document.getElementById("temp");
+  const titulo = document.getElementById("tituloEp");
+  const novo = document.getElementById("novo");
+
+  if(!lista || !temp || !titulo) return;
+
+  let s = db[lista.value];
+  let tIndex = parseInt(temp.value);
+
+  if(!s || !s.temporadas[tIndex]){
+    alert("Temporada inválida");
+    return;
+  }
+
+  // remove antigo destaque
+  db.forEach(s=>s.temporadas.forEach(t=>t.episodios.forEach(ep=>ep.novo=false)));
+
+  s.temporadas[tIndex].episodios.push({
+    titulo: titulo.value,
+    links: {...tempLinks},
+    novo: novo.checked
   });
+
+  tempLinks = {};
+  titulo.value = "";
+
+  salvar();
+
+  alert("Episódio salvo!");
 }
 
-/* AUTO */
-render();
-carregarSerie();
-carregarPlayer();
+// ===== AUTO =====
+document.addEventListener("DOMContentLoaded", ()=>{
+  atualizarLista();
+});
