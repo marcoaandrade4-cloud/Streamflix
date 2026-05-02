@@ -1,240 +1,265 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chat Noir Brasil</title>
+
+<style>
+body{margin:0;background:#000;color:#fff;font-family:Arial}
+header{background:#0f0;color:#000;padding:10px;display:flex;justify-content:space-between}
+button{background:#0f0;border:none;padding:6px;border-radius:6px;margin:2px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:10px}
+.card{background:#111;border-radius:10px;overflow:hidden}
+.card img{width:100%;height:200px;object-fit:cover}
+.ep{display:flex;background:#111;margin:10px;border-radius:10px}
+.ep img{width:120px}
+.hidden{display:none}
+#admin{background:#111;padding:10px}
+input{width:100%;margin:5px 0;padding:6px}
+video{width:100%}
+</style>
+</head>
+
+<body>
+
+<header>
+Chat Noir Brasil
+<div>
+<button onclick="home()">🏠</button>
+<button onclick="adm()">⚙️</button>
+</div>
+</header>
+
+<div id="home">
+<h3 style="text-align:center">Temporadas</h3>
+<div class="grid" id="grid"></div>
+</div>
+
+<div id="lista" class="hidden"></div>
+<div id="player" class="hidden"></div>
+<div id="admin" class="hidden"></div>
+
 <script>
-let db = JSON.parse(localStorage.getItem("db")) || { series: [] };
+let db = JSON.parse(localStorage.getItem("db")) || {
+  series:[]
+};
 
-let serieAtual = null;
-let epAtual = null;
+let serieAtual=0;
 
-/* ---------- RENDER ---------- */
+/* ---------- HOME ---------- */
 function render(){
-  const grid = document.getElementById("grid");
-  grid.innerHTML = "";
-
+  let grid=document.getElementById("grid");
+  grid.innerHTML="";
   db.series.forEach((s,i)=>{
-    grid.innerHTML += `
-    <div class="card" onclick="abrirLista(${i})">
-      <img src="${s.img}" onerror="this.src='https://via.placeholder.com/300x400'">
+    grid.innerHTML+=`
+    <div class="card" onclick="lista(${i})">
+      <img src="${s.img || 'https://via.placeholder.com/300'}">
       <p>${s.nome}</p>
     </div>`;
   });
 }
 
 /* ---------- LISTA ---------- */
-function abrirLista(i){
+function lista(i){
   serieAtual=i;
-  esconderTudo();
-  let lista=document.getElementById("lista");
-  lista.classList.remove("hidden");
+  esconder();
+  let div=document.getElementById("lista");
+  div.classList.remove("hidden");
 
-  lista.innerHTML = `
-  <button onclick="voltar()">⬅</button>
-  <h2>${db.series[i].nome}</h2>
-  `;
+  div.innerHTML=`<button onclick="home()">⬅</button><h2>${db.series[i].nome}</h2>`;
 
   db.series[i].eps.forEach((ep,index)=>{
-    lista.innerHTML += `
+    div.innerHTML+=`
     <div class="ep">
       <img src="${db.series[i].img}">
       <div>
         <h4>${ep.nome}</h4>
-        <button onclick="abrirPlayer(${i},${index})">▶</button>
-        <button onclick="editarEp(${index})">✏️</button>
-        <button onclick="removerEp(${index})">❌</button>
+        <button onclick="player(${index})">▶</button>
+        <button onclick="editEp(${index})">✏️</button>
+        <button onclick="delEp(${index})">❌</button>
       </div>
     </div>`;
   });
 }
 
 /* ---------- PLAYER ---------- */
-function abrirPlayer(s,e){
-  esconderTudo();
-  document.getElementById("player").classList.remove("hidden");
+function player(e){
+  esconder();
+  let ep=db.series[serieAtual].eps[e];
+  let div=document.getElementById("player");
+  div.classList.remove("hidden");
 
-  let ep=db.series[s].eps[e];
-  document.getElementById("titulo").innerText=ep.nome;
+  div.innerHTML=`<button onclick="lista(${serieAtual})">⬅</button>
+  <h2>${ep.nome}</h2>
+  <div id="idiomas"></div>
+  <video id="v" controls></video>`;
 
-  let div=document.getElementById("idiomas");
-  div.innerHTML="";
-  ep.idiomas.forEach((i,index)=>{
-    div.innerHTML += `
-      <button onclick="trocar('${i.link}')">${i.nome}</button>
-    `;
+  let idiomas=document.getElementById("idiomas");
+
+  ep.idiomas.forEach(i=>{
+    idiomas.innerHTML+=`<button onclick="trocar('${i.link}')">${i.nome}</button>`;
   });
 
-  trocar(ep.idiomas[0].link);
+  trocar(ep.idiomas[0]?.link);
 }
 
 function trocar(l){
-  document.getElementById("video").src=l;
-}
-
-function voltar(){
-  location.reload();
+  document.getElementById("v").src=l||"";
 }
 
 /* ---------- ADM ---------- */
-function loginADM(){
+function adm(){
   let s=prompt("Senha:");
-  if(s==="1234"){
-    abrirPainel();
-  }
-}
+  if(s!=="1234")return;
 
-function abrirPainel(){
-  esconderTudo();
-  let lista=document.getElementById("lista");
-  lista.classList.remove("hidden");
+  esconder();
+  let div=document.getElementById("admin");
+  div.classList.remove("hidden");
 
-  lista.innerHTML = `
-    <h2>Modo ADM</h2>
+  div.innerHTML=`
+  <h2>ADM</h2>
 
-    <h3>Series</h3>
-    ${db.series.map((s,i)=>`
-      <div class="ep">
-        <img src="${s.img}">
-        <div>
-          <b>${s.nome}</b><br>
-          <button onclick="editarSerie(${i})">✏️</button>
-          <button onclick="removerSerie(${i})">❌</button>
-        </div>
-      </div>
-    `).join("")}
+  <h3>Series</h3>
+  ${db.series.map((s,i)=>`
+    <div>
+      ${s.nome}
+      <button onclick="editSerie(${i})">✏️</button>
+      <button onclick="delSerie(${i})">❌</button>
+    </div>
+  `).join("")}
 
-    <hr>
+  <hr>
 
-    <h3>Nova Série</h3>
-    <input id="novaSerieNome" placeholder="Nome">
-    <input id="novaSerieImg" placeholder="Imagem">
-    <button onclick="criarSerie()">Criar</button>
+  <input id="sNome" placeholder="Nome série">
+  <input id="sImg" placeholder="Imagem">
+  <button onclick="addSerie()">Criar</button>
+
+  <br><br>
+  <button onclick="home()">⬅</button>
   `;
 }
 
 /* ---------- SERIE ---------- */
-function criarSerie(){
-  db.series.push({
-    nome:document.getElementById("novaSerieNome").value,
-    img:document.getElementById("novaSerieImg").value,
-    eps:[]
-  });
-  salvar();
-  abrirPainel();
+function addSerie(){
+  db.series.push({nome:sNome.value,img:sImg.value,eps:[]});
+  save(); adm();
 }
 
-function editarSerie(i){
-  let s = db.series[i];
+function editSerie(i){
+  let s=db.series[i];
 
-  document.getElementById("lista").innerHTML = `
-    <h2>Editar Série</h2>
+  let div=document.getElementById("admin");
+  div.innerHTML=`
+  <h2>Editar Série</h2>
 
-    <input id="nomeSerie" value="${s.nome}">
-    <input id="imgSerie" value="${s.img}">
-    <button onclick="salvarSerie(${i})">Salvar</button>
+  <input id="n" value="${s.nome}">
+  <input id="img" value="${s.img}">
+  <button onclick="saveSerie(${i})">Salvar</button>
 
-    <h3>Episódios</h3>
-    ${s.eps.map((ep,idx)=>`
-      <div>
-        ${ep.nome}
-        <button onclick="editarEp(${idx},${i})">✏️</button>
-      </div>
-    `).join("")}
+  <h3>Episódios</h3>
+  ${s.eps.map((e,idx)=>`
+    <div>
+      ${e.nome}
+      <button onclick="editEp(${idx})">✏️</button>
+    </div>
+  `).join("")}
 
-    <hr>
+  <input id="novoEp" placeholder="Novo episódio">
+  <button onclick="addEp(${i})">Adicionar</button>
 
-    <input id="novoEpNome" placeholder="Novo episódio">
-    <button onclick="criarEp(${i})">Adicionar episódio</button>
-
-    <br><br>
-    <button onclick="abrirPainel()">⬅ Voltar</button>
+  <br><br>
+  <button onclick="adm()">⬅</button>
   `;
 }
 
-function salvarSerie(i){
-  db.series[i].nome = document.getElementById("nomeSerie").value;
-  db.series[i].img = document.getElementById("imgSerie").value;
-  salvar();
-  abrirPainel();
+function saveSerie(i){
+  db.series[i].nome=n.value;
+  db.series[i].img=img.value;
+  save(); adm();
 }
 
-function removerSerie(i){
+function delSerie(i){
   db.series.splice(i,1);
-  salvar();
-  abrirPainel();
+  save(); adm();
 }
 
 /* ---------- EP ---------- */
-function criarEp(i){
-  db.series[i].eps.push({
-    nome:document.getElementById("novoEpNome").value,
-    idiomas:[]
-  });
-  salvar();
-  editarSerie(i);
+function addEp(i){
+  db.series[i].eps.push({nome:novoEp.value,idiomas:[]});
+  save(); editSerie(i);
 }
 
-function editarEp(e,sIndex=serieAtual){
-  let ep = db.series[sIndex].eps[e];
+function editEp(e){
+  let ep=db.series[serieAtual].eps[e];
 
-  document.getElementById("lista").innerHTML = `
-    <h2>Editar Episódio</h2>
+  let div=document.getElementById("admin");
+  div.innerHTML=`
+  <h2>Editar Episódio</h2>
 
-    <input id="nomeEp" value="${ep.nome}">
-    <button onclick="salvarEp(${e},${sIndex})">Salvar</button>
+  <input id="nome" value="${ep.nome}">
+  <button onclick="saveEp(${e})">Salvar</button>
 
-    <h3>Idiomas</h3>
-    ${ep.idiomas.map((i,idx)=>`
-      <div>
-        ${i.nome}
-        <button onclick="removerIdioma(${e},${idx})">❌</button>
-      </div>
-    `).join("")}
+  <h3>Idiomas</h3>
+  ${ep.idiomas.map((i,idx)=>`
+    <div>
+      ${i.nome}
+      <button onclick="delIdioma(${e},${idx})">❌</button>
+    </div>
+  `).join("")}
 
-    <input id="idiomaNome" placeholder="BR">
-    <input id="idiomaLink" placeholder="link">
-    <button onclick="addIdioma(${e},${sIndex})">Adicionar</button>
+  <input id="iNome" placeholder="BR">
+  <input id="iLink" placeholder="link">
+  <button onclick="addIdioma(${e})">Adicionar</button>
 
-    <br><br>
-    <button onclick="editarSerie(${sIndex})">⬅ Voltar</button>
+  <br><br>
+  <button onclick="adm()">⬅</button>
   `;
 }
 
-function salvarEp(e,s){
-  db.series[s].eps[e].nome = document.getElementById("nomeEp").value;
-  salvar();
-  editarSerie(s);
+function saveEp(e){
+  db.series[serieAtual].eps[e].nome=nome.value;
+  save(); adm();
 }
 
-function removerEp(i){
+function delEp(i){
   db.series[serieAtual].eps.splice(i,1);
-  salvar();
-  abrirLista(serieAtual);
+  save(); lista(serieAtual);
 }
 
-/* ---------- IDIOMAS ---------- */
-function addIdioma(e,s){
-  db.series[s].eps[e].idiomas.push({
-    nome:document.getElementById("idiomaNome").value,
-    link:document.getElementById("idiomaLink").value
+/* ---------- IDIOMA ---------- */
+function addIdioma(e){
+  db.series[serieAtual].eps[e].idiomas.push({
+    nome:iNome.value,
+    link:iLink.value
   });
-  salvar();
-  editarEp(e,s);
+  save(); editEp(e);
 }
 
-function removerIdioma(e,i){
+function delIdioma(e,i){
   db.series[serieAtual].eps[e].idiomas.splice(i,1);
-  salvar();
-  editarEp(e,serieAtual);
+  save(); editEp(e);
 }
 
 /* ---------- UTIL ---------- */
-function salvar(){
-  localStorage.setItem("db", JSON.stringify(db));
+function save(){
+  localStorage.setItem("db",JSON.stringify(db));
 }
 
-function esconderTudo(){
+function esconder(){
   document.getElementById("home").classList.add("hidden");
   document.getElementById("lista").classList.add("hidden");
   document.getElementById("player").classList.add("hidden");
+  document.getElementById("admin").classList.add("hidden");
+}
+
+function home(){
+  location.reload();
 }
 
 /* START */
 render();
 </script>
+
+</body>
+</html>
