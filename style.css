@@ -1,31 +1,78 @@
-body{background:#000;color:#fff;font-family:Arial;margin:0}
+/* RESET */
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
 
+/* BODY */
+body{
+  background:#000;
+  color:#fff;
+  font-family:Arial, sans-serif;
+}
+
+/* TOPO */
 .topo{
   display:flex;
   justify-content:space-between;
+  align-items:center;
   padding:15px;
   background:#111;
 }
 
-.logo{color:#00ff66}
+.logo{
+  color:#00ff66;
+  font-size:20px;
+  font-weight:bold;
+}
 
 .user{
   background:#00ff66;
-  padding:10px;
+  padding:10px 12px;
   border-radius:10px;
   text-decoration:none;
   color:#000;
+  font-weight:bold;
+  transition:0.2s;
 }
 
-/* BUSCA CENTRAL */
+.user:hover{
+  opacity:0.8;
+}
+
+/* 🔍 BUSCA CENTRAL */
 .buscaBox{
   display:flex;
   justify-content:center;
   align-items:center;
-  gap:5px;
+  gap:6px;
   margin:15px;
 }
 
+.buscaBox input{
+  width:60%;
+  max-width:400px;
+  padding:10px;
+  border-radius:10px;
+  border:none;
+  outline:none;
+}
+
+.buscaBox button{
+  padding:10px 14px;
+  border:none;
+  border-radius:10px;
+  background:#00ff66;
+  cursor:pointer;
+}
+
+/* TITULOS */
+h2{
+  padding:10px;
+}
+
+/* GRID */
 .grid{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -33,20 +80,82 @@ body{background:#000;color:#fff;font-family:Arial;margin:0}
   padding:10px;
 }
 
+/* CARD */
+.card{
+  cursor:pointer;
+  transition:0.2s;
+}
+
+.card:hover{
+  transform:scale(1.03);
+}
+
 .card img{
   width:100%;
   border-radius:10px;
 }
 
+.card p{
+  margin-top:5px;
+  font-size:14px;
+}
+
+/* BOTÕES */
 button{
   margin:5px;
   padding:10px;
   border:none;
   border-radius:10px;
   background:#00ff66;
+  color:#000;
+  font-weight:bold;
+  cursor:pointer;
+  transition:0.2s;
 }
 
+button:hover{
+  opacity:0.85;
+}
+
+/* INPUTS */
 input{
   margin:5px;
   padding:10px;
+  border-radius:10px;
+  border:none;
+  outline:none;
+}
+
+/* NOVO EPISÓDIO */
+#novoEp{
+  padding:10px;
+}
+
+#novoEp button{
+  width:100%;
+  background:#00ff66;
+  font-size:15px;
+}
+
+/* PLAYER */
+iframe{
+  margin-top:10px;
+  border:none;
+  border-radius:10px;
+}
+
+/* TEMPORADAS / EPISÓDIOS */
+#temporadas, #episodios, #idiomas{
+  padding:10px;
+}
+
+/* RESPONSIVO */
+@media(max-width:600px){
+  .grid{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .buscaBox input{
+    width:70%;
+  }
 }
