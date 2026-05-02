@@ -1,17 +1,29 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
+<meta charset="UTF-8">
+<title>Player</title>
 <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-<h2 id="ep"></h2>
+<header class="topo">
+  <div class="logo">🐾 StreamFlix</div>
+</header>
 
-<select id="idioma"></select>
+<h2 id="tituloEp"></h2>
 
-<iframe id="player"></iframe>
+<video id="video" controls></video>
 
-<script src="app.js"></script>
+<p id="data"></p>
+
+<button class="btn">❤️ Favoritar</button>
+
+<div class="navEp">
+  <button onclick="voltar()">⏪</button>
+  <button onclick="avancar()">⏩</button>
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>
