@@ -5,58 +5,18 @@
 <title>Stream Flix</title>
 
 <style>
-body {
-  margin:0;
-  background:#000;
-  color:#fff;
-  font-family:Arial;
-}
+body { margin:0; background:#000; color:#fff; font-family:Arial; }
+.topo { background:#111; padding:15px; text-align:center; }
+.banner { text-align:center; color:#00ff00; padding:10px; }
 
-/* TOPO */
-.topo {
-  background:#111;
-  padding:15px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-
-.topo h1 {
-  margin:0;
-}
-
-/* MENU */
-.menu {
-  display:flex;
-  gap:15px;
-}
-
-.menu div {
-  cursor:pointer;
-}
-
-/* BANNER */
-.banner {
-  text-align:center;
-  color:#00ff00;
-  padding:10px;
-}
-
-/* CARD GRANDE */
 .card {
   background:#111;
   margin:15px;
-  border-radius:12px;
-  overflow:hidden;
+  padding:15px;
+  border-radius:10px;
 }
 
-.card img {
-  width:100%;
-}
-
-.card-content {
-  padding:10px;
-}
+img { width:100%; border-radius:10px; }
 
 button {
   background:#00ff00;
@@ -70,27 +30,15 @@ button {
 
 <body>
 
-<!-- TOPO -->
 <div class="topo">
   <h1>Stream Flix</h1>
-
-  <div class="menu">
-    <div onclick="home()">🏠</div>
-    <div>📃</div>
-    <div>👥</div>
-    <div>+</div>
-  </div>
 </div>
 
-<!-- BANNER -->
 <div class="banner">
   <h2>Bem-vindo ao Stream Flix!</h2>
 </div>
 
-<!-- NOVO EP -->
 <div id="novo"></div>
-
-<!-- CONTEÚDO -->
 <div id="conteudo"></div>
 
 <script type="module">
@@ -100,7 +48,7 @@ import {
   query, orderBy, where, doc, getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// FIREBASE
+// 🔥 CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyBkpOKakidlZ2WVZNBI9oEFHEjs1EqCt78",
   authDomain: "streamflix-62461.firebaseapp.com",
@@ -110,67 +58,70 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// ROUTER
-const params = new URLSearchParams(location.search);
-const serieId = params.get("serie");
-const epId = params.get("ep");
-
-// PLAYER
-function player(link) {
-  if (link.includes("youtube"))
-    return `<iframe src="${link.replace("watch?v=", "embed/")}" width="100%" height="300"></iframe>`;
-
-  if (link.includes("drive"))
-    return `<iframe src="${link.replace("/view", "/preview")}" width="100%" height="300"></iframe>`;
-
-  return `<video src="${link}" controls width="100%"></video>`;
-}
-
-// NOVO EP
-async function novo() {
-  const q = query(collection(db,"episodios"), orderBy("ordem","desc"));
-  const snap = await getDocs(q);
-
-  if (snap.empty) return;
-
-  const d = snap.docs[0];
-  const ep = d.data();
-
-  document.getElementById("novo").innerHTML = `
+// 🔥 DEBUG
+function erro(msg) {
+  document.getElementById("conteudo").innerHTML = `
     <div class="card">
-      <img src="${ep.capa}">
-      <div class="card-content">
-        <h3>Novo episódio!</h3>
-        <p>${ep.nome}</p>
-        <button onclick="abrirEp('${d.id}')">Assistir</button>
-      </div>
+      <h3>⚠️ ${msg}</h3>
     </div>
   `;
 }
 
-// HOME (TEMPORADAS)
-async function home() {
-  const snap = await getDocs(collection(db,"series"));
+// 🔥 NOVO EP
+async function novo() {
+  try {
+    const q = query(collection(db,"episodios"), orderBy("ordem","desc"));
+    const snap = await getDocs(q);
 
-  let html = "";
+    if (snap.empty) return;
 
-  snap.forEach(doc=>{
-    const s = doc.data();
+    const d = snap.docs[0];
+    const ep = d.data();
 
-    html += `
-      <div class="card" onclick="abrirSerie('${doc.id}')">
-        <img src="${s.capa}">
-        <div class="card-content">
-          <h3>${s.nome}</h3>
-        </div>
+    document.getElementById("novo").innerHTML = `
+      <div class="card">
+        <h3>Novo episódio</h3>
+        <p>${ep.nome}</p>
+        <button onclick="abrirEp('${d.id}')">Assistir</button>
       </div>
     `;
-  });
-
-  document.getElementById("conteudo").innerHTML = html;
+  } catch(e) {
+    console.error(e);
+  }
 }
 
-// LISTA DE EP
+// 🔥 HOME
+async function home() {
+  try {
+    const snap = await getDocs(collection(db,"series"));
+
+    if (snap.empty) {
+      erro("Nenhuma série encontrada no Firebase");
+      return;
+    }
+
+    let html = "";
+
+    snap.forEach(doc=>{
+      const s = doc.data();
+
+      html += `
+        <div class="card" onclick="abrirSerie('${doc.id}')">
+          <img src="${s.capa}">
+          <h3>${s.nome}</h3>
+        </div>
+      `;
+    });
+
+    document.getElementById("conteudo").innerHTML = html;
+
+  } catch(e) {
+    erro("Erro ao conectar com Firebase");
+    console.error(e);
+  }
+}
+
+// 🔥 SÉRIE
 async function serie(id) {
   const q = query(
     collection(db,"episodios"),
@@ -188,10 +139,8 @@ async function serie(id) {
     html += `
       <div class="card">
         <img src="${ep.capa}">
-        <div class="card-content">
-          <h3>${ep.nome}</h3>
-          <button onclick="abrirEp('${doc.id}')">Assistir</button>
-        </div>
+        <h3>${ep.nome}</h3>
+        <button onclick="abrirEp('${doc.id}')">Assistir</button>
       </div>
     `;
   });
@@ -199,30 +148,32 @@ async function serie(id) {
   document.getElementById("conteudo").innerHTML = html;
 }
 
-// PLAYER
+// 🔥 PLAYER
 async function episodio(id) {
   const snap = await getDoc(doc(db,"episodios",id));
   const ep = snap.data();
 
   document.getElementById("conteudo").innerHTML = `
     <div class="card">
-      <div class="card-content">
-        <h2>${ep.nome}</h2>
-        ${player(ep.video)}
-      </div>
+      <h2>${ep.nome}</h2>
+      <iframe width="100%" height="300"
+      src="${ep.video.replace("watch?v=", "embed/")}"
+      allowfullscreen></iframe>
     </div>
   `;
 }
 
-// NAVEGAÇÃO
+// 🔥 NAV
 window.abrirSerie = (id)=> location.search="?serie="+id;
 window.abrirEp = (id)=> location.search="?ep="+id;
 
-// INIT
+// 🔥 INIT
 novo();
 
-if(epId) episodio(epId);
-else if(serieId) serie(serieId);
+const params = new URLSearchParams(location.search);
+
+if(params.get("ep")) episodio(params.get("ep"));
+else if(params.get("serie")) serie(params.get("serie"));
 else home();
 
 </script>
