@@ -6,17 +6,13 @@
 
 <style>
 body { margin:0; background:#000; color:#fff; font-family:Arial; }
-.topo { background:#111; padding:15px; text-align:center; }
-.banner { text-align:center; color:#00ff00; padding:10px; }
 
-.card {
+header {
   background:#111;
-  margin:15px;
   padding:15px;
-  border-radius:10px;
+  display:flex;
+  justify-content:space-between;
 }
-
-img { width:100%; border-radius:10px; }
 
 button {
   background:#00ff00;
@@ -25,30 +21,38 @@ button {
   border-radius:8px;
   cursor:pointer;
 }
+
+.card {
+  background:#111;
+  margin:15px;
+  padding:15px;
+  border-radius:10px;
+}
+
+input {
+  width:100%;
+  margin:5px 0;
+  padding:8px;
+}
 </style>
 </head>
 
 <body>
 
-<div class="topo">
+<header>
   <h1>Stream Flix</h1>
-</div>
+  <button onclick="abrirADM()">+</button>
+</header>
 
-<div class="banner">
-  <h2>Bem-vindo ao Stream Flix!</h2>
-</div>
-
-<div id="novo"></div>
 <div id="conteudo"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  getFirestore, collection, getDocs,
-  query, orderBy, where, doc, getDoc
+  getFirestore, collection, getDocs, addDoc,
+  query, orderBy, where
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// 🔥 CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyBkpOKakidlZ2WVZNBI9oEFHEjs1EqCt78",
   authDomain: "streamflix-62461.firebaseapp.com",
@@ -58,89 +62,19 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// 🔥 DEBUG
-function erro(msg) {
-  document.getElementById("conteudo").innerHTML = `
-    <div class="card">
-      <h3>⚠️ ${msg}</h3>
-    </div>
-  `;
-}
-
-// 🔥 NOVO EP
-async function novo() {
-  try {
-    const q = query(collection(db,"episodios"), orderBy("ordem","desc"));
-    const snap = await getDocs(q);
-
-    if (snap.empty) return;
-
-    const d = snap.docs[0];
-    const ep = d.data();
-
-    document.getElementById("novo").innerHTML = `
-      <div class="card">
-        <h3>Novo episódio</h3>
-        <p>${ep.nome}</p>
-        <button onclick="abrirEp('${d.id}')">Assistir</button>
-      </div>
-    `;
-  } catch(e) {
-    console.error(e);
-  }
-}
-
 // 🔥 HOME
 async function home() {
-  try {
-    const snap = await getDocs(collection(db,"series"));
+  const snap = await getDocs(collection(db,"series"));
 
-    if (snap.empty) {
-      erro("Nenhuma série encontrada no Firebase");
-      return;
-    }
-
-    let html = "";
-
-    snap.forEach(doc=>{
-      const s = doc.data();
-
-      html += `
-        <div class="card" onclick="abrirSerie('${doc.id}')">
-          <img src="${s.capa}">
-          <h3>${s.nome}</h3>
-        </div>
-      `;
-    });
-
-    document.getElementById("conteudo").innerHTML = html;
-
-  } catch(e) {
-    erro("Erro ao conectar com Firebase");
-    console.error(e);
-  }
-}
-
-// 🔥 SÉRIE
-async function serie(id) {
-  const q = query(
-    collection(db,"episodios"),
-    where("serie","==",id),
-    orderBy("ordem")
-  );
-
-  const snap = await getDocs(q);
-
-  let html="";
+  let html = "";
 
   snap.forEach(doc=>{
-    const ep = doc.data();
+    const s = doc.data();
 
     html += `
       <div class="card">
-        <img src="${ep.capa}">
-        <h3>${ep.nome}</h3>
-        <button onclick="abrirEp('${doc.id}')">Assistir</button>
+        <img src="${s.capa}" width="100%">
+        <h3>${s.nome}</h3>
       </div>
     `;
   });
@@ -148,33 +82,52 @@ async function serie(id) {
   document.getElementById("conteudo").innerHTML = html;
 }
 
-// 🔥 PLAYER
-async function episodio(id) {
-  const snap = await getDoc(doc(db,"episodios",id));
-  const ep = snap.data();
-
+// 🔥 ADM
+window.abrirADM = () => {
   document.getElementById("conteudo").innerHTML = `
     <div class="card">
-      <h2>${ep.nome}</h2>
-      <iframe width="100%" height="300"
-      src="${ep.video.replace("watch?v=", "embed/")}"
-      allowfullscreen></iframe>
+      <h2>Adicionar Série</h2>
+      <input id="nomeSerie" placeholder="Nome">
+      <input id="capaSerie" placeholder="URL da capa">
+      <button onclick="addSerie()">Salvar</button>
+
+      <h2>Adicionar Episódio</h2>
+      <input id="nomeEp" placeholder="Nome">
+      <input id="serieId" placeholder="ID da série">
+      <input id="ordem" placeholder="Ordem">
+      <input id="capaEp" placeholder="Capa">
+      <input id="video" placeholder="Link vídeo">
+      <button onclick="addEp()">Salvar</button>
     </div>
   `;
-}
+};
 
-// 🔥 NAV
-window.abrirSerie = (id)=> location.search="?serie="+id;
-window.abrirEp = (id)=> location.search="?ep="+id;
+// 🔥 ADD SÉRIE
+window.addSerie = async () => {
+  await addDoc(collection(db,"series"), {
+    nome: nomeSerie.value,
+    capa: capaSerie.value
+  });
 
-// 🔥 INIT
-novo();
+  alert("Série adicionada!");
+  home();
+};
 
-const params = new URLSearchParams(location.search);
+// 🔥 ADD EP
+window.addEp = async () => {
+  await addDoc(collection(db,"episodios"), {
+    nome: nomeEp.value,
+    serie: serieId.value,
+    ordem: Number(ordem.value),
+    capa: capaEp.value,
+    video: video.value
+  });
 
-if(params.get("ep")) episodio(params.get("ep"));
-else if(params.get("serie")) serie(params.get("serie"));
-else home();
+  alert("Episódio adicionado!");
+};
+
+// INIT
+home();
 
 </script>
 
