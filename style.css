@@ -17,21 +17,6 @@ body{background:#000;color:#fff;font-family:Arial;margin:0}
   color:#000;
 }
 
-.novo{
-  background:#0b2b1c;
-  margin:15px;
-  padding:20px;
-  border-radius:15px;
-  text-align:center;
-}
-
-.btn{
-  background:#00ff66;
-  padding:10px 20px;
-  border-radius:20px;
-  color:#000;
-}
-
 .grid{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -50,4 +35,10 @@ button{
   border:none;
   border-radius:10px;
   background:#00ff66;
+}
+
+input{
+  margin:10px;
+  padding:10px;
+  width:90%;
 }
