@@ -1,33 +1,8 @@
 body{background:#000;color:#fff;font-family:Arial;margin:0}
-
-.topo{
-  display:flex;
-  justify-content:space-between;
-  padding:15px;
-  background:#111;
-}
-
+.topo{display:flex;justify-content:space-between;padding:15px;background:#111}
 .logo{color:#00ff66}
-
-.user{
-  background:#00ff66;
-  padding:10px;
-  border-radius:10px;
-  text-decoration:none;
-  color:#000;
-}
-
-.novo{
-  background:#0b2b1c;
-  margin:15px;
-  padding:20px;
-  border-radius:15px;
-  text-align:center;
-}
-
-.btn{
-  background:#00ff66;
-  padding:10px 20px;
-  border-radius:20px;
-  color:#000;
-}
+.user{background:#00ff66;padding:10px;border-radius:10px;cursor:pointer}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px}
+.card img{width:100%;border-radius:10px}
+button{margin:5px;padding:10px;border:none;background:#00ff66;border-radius:10px}
+input,select{margin:5px;padding:10px;width:90%}
