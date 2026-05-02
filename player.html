@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html>
 <head>
   <meta charset="UTF-8">
   <title>Player</title>
@@ -8,7 +8,7 @@
 <body>
 
 <header>
-  <h1>🎬 Player</h1>
+  <h1>Player</h1>
 </header>
 
 <main>
@@ -17,17 +17,14 @@
   <iframe id="video" width="100%" height="250" allowfullscreen></iframe>
 
   <br><br>
-  <button onclick="voltar()">⬅ Voltar</button>
+  <button class="btn" onclick="history.back()">⬅ Voltar</button>
 </main>
 
 <script>
 const url = new URLSearchParams(window.location.search);
+
 document.getElementById("titulo").innerText = url.get("nome");
 document.getElementById("video").src = url.get("video");
-
-function voltar(){
-  history.back();
-}
 </script>
 
 </body>
