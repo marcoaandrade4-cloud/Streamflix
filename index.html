@@ -5,59 +5,41 @@
 <title>StreamFlix</title>
 
 <style>
-body{
- margin:0;
- font-family:Arial;
- background:#000;
- color:#fff;
-}
+body{margin:0;background:#000;color:#fff;font-family:Arial}
 
-/* NAVBAR */
+/* NAV */
 .nav{
- display:flex;
- justify-content:space-between;
- align-items:center;
- padding:12px;
- background:#0b0b0b;
+ display:flex;justify-content:space-between;
+ padding:12px;background:#0b0b0b;
  border-bottom:2px solid #00ff66;
 }
-
-.logo{
- color:#00ff66;
- font-weight:bold;
- font-size:18px;
-}
-
+.logo{color:#00ff66;font-weight:bold}
 .nav button{
- background:#00ff66;
- border:none;
- padding:8px 12px;
- border-radius:10px;
+ background:#00ff66;border:none;
+ padding:8px 12px;border-radius:10px;
  font-weight:bold;
 }
 
 /* BANNER */
 .banner{
  margin:15px;
- padding:20px;
- border-radius:15px;
- background:linear-gradient(135deg,#0f1f14,#001a0a);
+ padding:25px;
+ border-radius:20px;
+ background:linear-gradient(135deg,#00ff66,#003d1f);
+ box-shadow:0 0 30px #00ff66;
  text-align:center;
- box-shadow:0 0 25px #00ff66;
 }
-
-.banner h2{
- margin:0;
-}
-
+.banner h2{margin:0}
 .banner button{
- margin-top:10px;
+ margin-top:15px;
  background:#00ff66;
+ color:#000;
  border:none;
- padding:12px 25px;
- border-radius:12px;
+ padding:15px 35px;
+ border-radius:20px;
+ font-size:18px;
  font-weight:bold;
- font-size:16px;
+ box-shadow:0 0 20px #00ff66;
 }
 
 /* GRID */
@@ -67,32 +49,22 @@ body{
  gap:15px;
  padding:15px;
 }
-
 .card{
- position:relative;
  border-radius:15px;
  overflow:hidden;
+ position:relative;
  transition:.3s;
 }
-
 .card:hover{
- transform:scale(1.05);
+ transform:scale(1.07);
  box-shadow:0 0 15px #00ff66;
 }
-
-.card img{
- width:100%;
- height:100%;
- object-fit:cover;
-}
-
+.card img{width:100%}
 .card span{
- position:absolute;
- bottom:0;
- width:100%;
+ position:absolute;bottom:0;width:100%;
  background:rgba(0,0,0,0.7);
- padding:5px;
  text-align:center;
+ padding:5px;
 }
 </style>
 </head>
@@ -100,7 +72,7 @@ body{
 <body>
 
 <div class="nav">
- <div class="logo">🐾 StreamFlix</div>
+ <div class="logo">🐾 CNBR Stream</div>
  <button onclick="location.href='admin.html'">ADM</button>
 </div>
 
@@ -123,9 +95,8 @@ const db = getFirestore(app);
 
 async function carregar(){
  const snap = await getDocs(collection(db,"conteudos"));
-
  snap.forEach(d=>{
-  const c = d.data();
+  const c=d.data();
 
   const div=document.createElement("div");
   div.className="card";
