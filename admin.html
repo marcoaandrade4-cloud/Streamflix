@@ -1,127 +1,29 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html>
 <head>
 <meta charset="UTF-8">
 <title>ADM</title>
-
-<style>
-body{background:#000;color:#fff;font-family:Arial}
-input,button{margin:5px;padding:10px;border-radius:8px;border:none}
-button{background:#0f0;cursor:pointer}
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-<h1>ADM</h1>
+<div id="loginBox">
+  <h2>Login ADM</h2>
+  <input type="password" id="senha" placeholder="Senha">
+  <button onclick="entrar()">Entrar</button>
+</div>
 
-<h2>Nova Série / Filme</h2>
-<input id="titulo" placeholder="Título">
-<input id="capa" placeholder="URL da capa">
-<button onclick="criar()">Criar</button>
+<div id="painel" style="display:none;">
+  <h2>Painel ADM</h2>
 
-<h2>Lista</h2>
-<div id="lista"></div>
+  <input id="titulo" placeholder="Título">
+  <input id="capa" placeholder="URL da capa">
+  <input id="videoUrl" placeholder="Link do vídeo">
+  <input id="temporada" placeholder="Temporada">
 
-<hr>
+  <button onclick="salvar()">Salvar</button>
+</div>
 
-<h2>Editar</h2>
-<div id="editor"></div>
-
-<script>
-let catalogo = JSON.parse(localStorage.getItem("catalogo")) || [];
-
-function salvar(){
-  localStorage.setItem("catalogo", JSON.stringify(catalogo));
-  location.reload();
-}
-
-function criar(){
-  catalogo.push({
-    titulo: titulo.value,
-    capa: capa.value,
-    temporadas:[]
-  });
-  salvar();
-}
-
-function renderLista(){
-  let div = document.getElementById("lista");
-  div.innerHTML="";
-
-  catalogo.forEach((item,i)=>{
-    div.innerHTML+=`
-      <div>
-        ${item.titulo}
-        <button onclick="editar(${i})">Editar</button>
-        <button onclick="del(${i})">Excluir</button>
-      </div>
-    `;
-  });
-}
-
-function del(i){
-  catalogo.splice(i,1);
-  salvar();
-}
-
-function editar(i){
-  let item = catalogo[i];
-  let div = document.getElementById("editor");
-
-  div.innerHTML=`
-    <h3>${item.titulo}</h3>
-    <button onclick="addTemp(${i})">+ Temporada</button>
-    <div id="temps"></div>
-  `;
-
-  let tdiv = div.querySelector("#temps");
-
-  item.temporadas.forEach((t,ti)=>{
-    let bloco=document.createElement("div");
-
-    bloco.innerHTML=`
-      <h4>Temporada ${ti+1}</h4>
-      <button onclick="addEp(${i},${ti})">+ Episódio</button>
-      <div id="eps${ti}"></div>
-    `;
-
-    tdiv.appendChild(bloco);
-
-    let epsDiv=bloco.querySelector("#eps"+ti);
-
-    t.episodios.forEach((ep,ei)=>{
-      epsDiv.innerHTML+=`
-        <div>
-          Ep ${ei+1}
-          <button onclick="addLink(${i},${ti},${ei})">+ Idioma</button>
-        </div>
-      `;
-    });
-  });
-}
-
-function addTemp(i){
-  catalogo[i].temporadas.push({episodios:[]});
-  salvar();
-}
-
-function addEp(i,t){
-  catalogo[i].temporadas[t].episodios.push({links:{}});
-  salvar();
-}
-
-function addLink(i,t,e){
-  let lang=prompt("Idioma:");
-  let link=prompt("Link:");
-
-  catalogo[i].temporadas[t].episodios[e].links[lang]=link;
-
-  salvar();
-}
-
-renderLista();
-</script>
-
+<script src="script.js"></script>
 </body>
 </html>
