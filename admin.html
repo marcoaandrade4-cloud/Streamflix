@@ -7,29 +7,35 @@
 </head>
 <body>
 
-<h2>Login</h2>
+<h2>Login ADM</h2>
+
 <input id="user" placeholder="Usuário">
 <input id="pass" type="password" placeholder="Senha">
 <button onclick="login()">Entrar</button>
 
 <div id="painel" style="display:none">
 
-<h3>Criar</h3>
+<h3>Criar Conteúdo</h3>
 <input id="nome" placeholder="Nome">
 <input id="img" placeholder="Imagem">
 <input id="categoria" placeholder="Categoria">
+
 <select id="tipo">
 <option value="serie">Série</option>
 <option value="filme">Filme</option>
 </select>
+
 <button onclick="criar()">Criar</button>
 
 <hr>
+
+<h3>Gerenciar</h3>
 
 <select id="lista"></select>
 <button onclick="addTemp()">+ Temporada</button>
 
 <h3>Episódio</h3>
+
 <input id="tituloEp" placeholder="Título">
 <input id="temp" placeholder="Temporada (0)">
 <input id="idioma" placeholder="Idioma">
@@ -39,7 +45,7 @@
 
 <label><input type="checkbox" id="novo"> Novo episódio</label>
 
-<button onclick="salvarEp()">Salvar</button>
+<button onclick="salvarEp()">Salvar Episódio</button>
 
 </div>
 
