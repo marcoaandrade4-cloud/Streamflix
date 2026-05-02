@@ -3,115 +3,111 @@ let listaDB = [];
 
 /* LOGIN */
 function login(){
-  const userInput = document.getElementById("user");
-  const passInput = document.getElementById("pass");
-  const painel = document.getElementById("painel");
+  const u = document.getElementById("user").value;
+  const p = document.getElementById("pass").value;
 
-  if(userInput.value === "marco" && passInput.value === "22510827"){
-    painel.style.display = "block";
+  if(u==="marco" && p==="22510827"){
+    document.getElementById("painel").style.display="block";
     carregarLista();
-  }else{
-    alert("Senha errada");
-  }
+  }else alert("Senha errada");
 }
 
-/* CARREGAR LISTA */
+/* LISTA */
 function carregarLista(){
-  const lista = document.getElementById("lista");
+  db.collection("conteudo").get().then(snap=>{
+    lista.innerHTML="";
+    listaDB=[];
 
-  db.collection("conteudo").get().then(snapshot=>{
-    lista.innerHTML = "";
-    listaDB = [];
-
-    snapshot.forEach(doc=>{
-      listaDB.push({id:doc.id, ...doc.data()});
+    snap.forEach(doc=>{
+      listaDB.push({id:doc.id,...doc.data()});
     });
 
     listaDB.forEach((s,i)=>{
-      lista.innerHTML += `<option value="${i}">${s.nome}</option>`;
+      lista.innerHTML+=`<option value="${i}">${s.nome}</option>`;
     });
   });
 }
 
 /* CRIAR */
 function criar(){
-  const nome = document.getElementById("nome").value;
-  const img = document.getElementById("img").value;
-  const categoria = document.getElementById("categoria").value;
-  const tipo = document.getElementById("tipo").value;
-
   db.collection("conteudo").add({
-    nome,
-    img,
-    categoria,
-    tipo,
+    nome:nome.value,
+    img:img.value,
+    categoria:categoria.value,
+    tipo:tipo.value,
     temporadas:[{episodios:[]}]
-  }).then(()=>{
-    alert("Criado!");
-    carregarLista();
-  });
+  }).then(()=>carregarLista());
 }
 
-/* ADD TEMP */
+/* TEMP */
 function addTemp(){
-  const lista = document.getElementById("lista");
   let item = listaDB[lista.value];
-
-  if(!item) return alert("Selecione algo");
-
   item.temporadas.push({episodios:[]});
-
-  db.collection("conteudo").doc(item.id).set(item).then(()=>{
-    alert("Temporada adicionada");
-  });
+  db.collection("conteudo").doc(item.id).set(item);
 }
 
-/* ADD IDIOMA */
+/* IDIOMA */
 function addIdioma(){
-  const idioma = document.getElementById("idioma");
-  const link = document.getElementById("link");
-
-  if(!idioma.value || !link.value){
-    alert("Preencha idioma e link");
-    return;
-  }
-
-  tempLinks[idioma.value] = link.value;
-
+  tempLinks[idioma.value]=link.value;
   idioma.value="";
   link.value="";
-
-  alert("Idioma adicionado");
 }
 
-/* SALVAR EP */
+/* SALVAR */
 function salvarEp(){
-  const lista = document.getElementById("lista");
-  const temp = document.getElementById("temp");
-  const titulo = document.getElementById("tituloEp");
-  const novo = document.getElementById("novo");
-
   let item = listaDB[lista.value];
   let t = parseInt(temp.value);
 
-  if(!item || !item.temporadas[t]){
-    alert("Temporada inválida");
-    return;
-  }
-
-  item.temporadas.forEach(t=>{
-    t.episodios.forEach(ep=>ep.novo=false);
-  });
-
   item.temporadas[t].episodios.push({
-    titulo: titulo.value,
-    links: {...tempLinks},
-    novo: novo.checked
+    titulo:tituloEp.value,
+    links:{...tempLinks},
+    novo:novo.checked
   });
 
-  db.collection("conteudo").doc(item.id).set(item).then(()=>{
-    alert("Episódio salvo!");
-  });
+  db.collection("conteudo").doc(item.id).set(item);
 
-  tempLinks = {};
-    }
+  tempLinks={};
+}
+
+/* MOSTRAR EPS */
+function mostrarEpisodios(){
+  let item = listaDB[lista.value];
+  let t = parseInt(temp.value);
+
+  let area = document.getElementById("areaEps");
+  area.innerHTML="";
+
+  (item.temporadas[t].episodios||[]).forEach((ep,i)=>{
+    area.innerHTML+=`
+      <div>
+        ${ep.titulo}
+        <button onclick="editarEp(${i})">✏️</button>
+        <button onclick="removerEp(${i})">❌</button>
+      </div>
+    `;
+  });
+}
+
+/* EDITAR */
+function editarEp(i){
+  let item = listaDB[lista.value];
+  let t = parseInt(temp.value);
+
+  let ep = item.temporadas[t].episodios[i];
+
+  tituloEp.value = ep.titulo;
+  tempLinks = {...ep.links};
+
+  removerEp(i);
+}
+
+/* REMOVER */
+function removerEp(i){
+  let item = listaDB[lista.value];
+  let t = parseInt(temp.value);
+
+  item.temporadas[t].episodios.splice(i,1);
+
+  db.collection("conteudo").doc(item.id).set(item)
+  .then(()=>mostrarEpisodios());
+}
