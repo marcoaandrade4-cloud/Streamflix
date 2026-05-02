@@ -15,7 +15,7 @@
 
 <div id="painel" style="display:none">
 
-<h3>Criar Conteúdo</h3>
+<h3>Criar</h3>
 <input id="nome" placeholder="Nome">
 <input id="img" placeholder="Imagem">
 <input id="categoria" placeholder="Categoria">
@@ -28,8 +28,6 @@
 <button onclick="criar()">Criar</button>
 
 <hr>
-
-<h3>Gerenciar</h3>
 
 <select id="lista"></select>
 <button onclick="addTemp()">+ Temporada</button>
@@ -45,11 +43,18 @@
 
 <label><input type="checkbox" id="novo"> Novo episódio</label>
 
-<button onclick="salvarEp()">Salvar Episódio</button>
+<button onclick="salvarEp()">Salvar</button>
+
+<hr>
+
+<h3>Episódios existentes</h3>
+<button onclick="mostrarEpisodios()">Carregar episódios</button>
+
+<div id="areaEps"></div>
 
 </div>
 
-<!-- FIREBASE CORRETO -->
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
@@ -57,4 +62,4 @@
 <script src="adm.js"></script>
 
 </body>
-  </html>
+</html>
