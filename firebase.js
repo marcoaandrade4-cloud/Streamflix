@@ -4,8 +4,7 @@ const firebaseConfig = {
   projectId: "streamflix-62461",
   storageBucket: "streamflix-62461.appspot.com",
   messagingSenderId: "894473429433",
-  appId: "1:894473429433:web:51a0215903fbb277305668",
-  measurementId: "G-YC422EKENH"
+  appId: "1:894473429433:web:51a0215903fbb277305668"
 };
 
 firebase.initializeApp(firebaseConfig);
