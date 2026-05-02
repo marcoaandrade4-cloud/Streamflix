@@ -1,4 +1,4 @@
-body{background:#000;color:#fff;font-family:Arial;margin:0}
+body{margin:0;background:#000;color:#fff;font-family:Arial}
 
 .topo{
   display:flex;
@@ -6,8 +6,6 @@ body{background:#000;color:#fff;font-family:Arial;margin:0}
   padding:15px;
   background:#111;
 }
-
-.logo{color:#00ff66}
 
 .user{
   background:#00ff66;
