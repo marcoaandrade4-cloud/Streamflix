@@ -2,31 +2,22 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>StreamFlix</title>
+<title>Stream</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<header class="topo">
-  <div class="logo">🐾 StreamFlix</div>
-  <a href="./adm.html" class="user">👤</a>
-</header>
+<h2>Catálogo</h2>
 
-<div class="buscaBox">
-  <input id="busca" placeholder="Pesquisar...">
-  <button onclick="buscar()">🔍</button>
-</div>
+<div id="catalogo"></div>
 
-<h2>Novo episódio</h2>
-<div id="novoEp"></div>
+<button onclick="irADM()">ADM</button>
 
-<div id="conteudo" class="grid"></div>
-
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-<script src="firebase.js"></script>
 
-<script src="script.js"></script>
+<script src="firebase.js"></script>
+<script src="index.js"></script>
+
 </body>
 </html>
