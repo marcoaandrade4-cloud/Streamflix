@@ -1,179 +1,42 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>ADMIN</title>
-
-<style>
-body{background:#000;color:#fff;font-family:Arial;text-align:center}
-
-.box{
- background:#111;
- padding:15px;
- margin:10px;
- border-radius:10px;
-}
-
-input,textarea{
- width:90%;
- margin:5px;
- padding:10px;
- border-radius:10px;
- border:none;
-}
-
-button{
- padding:10px;
- margin:5px;
- border:none;
- border-radius:10px;
- background:#00ff66;
-}
-</style>
-</head>
-
 <body>
 
-<h2>ADMIN</h2>
-
 <div id="login">
- <input id="user" placeholder="Usuário">
- <input id="pass" type="password" placeholder="Senha">
- <button onclick="logar()">Entrar</button>
+  <input type="password" id="senha" placeholder="Senha">
+  <button onclick="logar()">Entrar</button>
 </div>
 
 <div id="painel" style="display:none">
 
-<div class="box">
- <h3>Nova Série / Filme</h3>
- <input id="titulo" placeholder="Título">
- <input id="capa" placeholder="URL da capa">
- <textarea id="sinopse" placeholder="Sinopse"></textarea>
- <button onclick="criar()">Criar</button>
-</div>
+<h2>ADMIN STREAMFLIX</h2>
 
-<div class="box">
- <h3>Adicionar Temporada</h3>
- <input id="idSerieTemp" placeholder="ID da série">
- <input id="nomeTemp" placeholder="Nome da temporada">
- <button onclick="addTemp()">Adicionar</button>
-</div>
+<input id="titulo" placeholder="Título">
+<input id="capa" placeholder="Imagem">
 
-<div class="box">
- <h3>Adicionar Episódio</h3>
- <input id="idSerieEp" placeholder="ID da série">
- <input id="numTemp" placeholder="Número da temporada (0,1,2)">
- <input id="tituloEp" placeholder="Título do episódio">
- <input id="thumbEp" placeholder="Thumb (URL)">
- <input id="lang" placeholder="Idioma (PT-BR)">
- <input id="video" placeholder="ID do YouTube">
- <button onclick="addEp()">Adicionar</button>
-</div>
+<select id="tipo">
+  <option value="serie">Série</option>
+  <option value="filme">Filme</option>
+</select>
 
-<div class="box">
- <h3>Editar Série</h3>
- <input id="idEdit" placeholder="ID da série">
- <input id="novoTitulo" placeholder="Novo título">
- <input id="novaCapa" placeholder="Nova capa">
- <button onclick="editar()">Salvar</button>
-</div>
+<textarea id="sinopse" placeholder="Sinopse"></textarea>
+<input id="ano" placeholder="Ano">
+
+<button onclick="salvar()">Salvar</button>
+
+<hr>
+
+<h3>Editar existente</h3>
+<select id="lista"></select>
+<button onclick="carregar()">Editar</button>
+
+<hr>
+
+<h3>Temporadas</h3>
+<button onclick="addTemp()">+ Temporada</button>
+<div id="temps"></div>
+
+<button onclick="salvarTudo()">Salvar Tudo</button>
 
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
- getFirestore,
- collection,
- addDoc,
- doc,
- updateDoc,
- getDoc
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-const app = initializeApp({
- apiKey:"AIzaSyBkpOKakidlZ2WVZNBI9oEFHEjs1EqCt78",
- projectId:"streamflix-62461"
-});
-const db = getFirestore(app);
-
-/* LOGIN */
-function logar(){
- if(user.value==="marco" && pass.value==="22510827"){
-  login.style.display="none";
-  painel.style.display="block";
- } else {
-  alert("Login errado");
- }
-}
-
-/* CRIAR */
-async function criar(){
- const ref = await addDoc(collection(db,"conteudos"),{
-  title: titulo.value,
-  cover: capa.value,
-  desc: sinopse.value,
-  seasons:[]
- });
-
- alert("Criado! ID: "+ref.id);
-}
-
-/* ADD TEMPORADA */
-async function addTemp(){
- const ref = doc(db,"conteudos", idSerieTemp.value);
- const snap = await getDoc(ref);
-
- let data = snap.data();
- data.seasons.push({
-  name: nomeTemp.value,
-  episodes:[]
- });
-
- await updateDoc(ref,{seasons:data.seasons});
- alert("Temporada adicionada");
-}
-
-/* ADD EPISÓDIO */
-async function addEp(){
- const ref = doc(db,"conteudos", idSerieEp.value);
- const snap = await getDoc(ref);
-
- let data = snap.data();
-
- data.seasons[numTemp.value].episodes.push({
-  title: tituloEp.value,
-  thumb: thumbEp.value,
-  languages:[
-   {
-    lang: lang.value,
-    url: video.value
-   }
-  ]
- });
-
- await updateDoc(ref,{seasons:data.seasons});
- alert("Episódio adicionado");
-}
-
-/* EDITAR */
-async function editar(){
- const ref = doc(db,"conteudos", idEdit.value);
-
- await updateDoc(ref,{
-  title: novoTitulo.value,
-  cover: novaCapa.value
- });
-
- alert("Editado!");
-}
-
-window.logar = logar;
-window.criar = criar;
-window.addTemp = addTemp;
-window.addEp = addEp;
-window.editar = editar;
-</script>
-
+<script src="app.js"></script>
 </body>
-</html>
