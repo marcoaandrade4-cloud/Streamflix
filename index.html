@@ -1,240 +1,50 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chat Noir Brasil</title>
-
-<style>
-*{box-sizing:border-box}
-body{margin:0;background:#000;color:#fff;font-family:Arial}
-
-/* TOPO */
-header{
-  background:#0f0;
-  color:#000;
-  padding:12px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  font-weight:bold;
-}
-
-/* MENU */
-.nav button{
-  margin-left:5px;
-  background:#000;
-  color:#0f0;
-}
-
-/* BANNER */
-.banner{
-  background:#111;
-  margin:12px;
-  padding:15px;
-  border-radius:12px;
-  text-align:center;
-}
-
-/* GRID */
-.grid{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:12px;
-  padding:12px;
-}
-.card{
-  background:#111;
-  border-radius:12px;
-  overflow:hidden;
-}
-.card img{
-  width:100%;
-  height:220px;
-  object-fit:cover;
-}
-.card p{padding:8px}
-
-/* LISTA EP */
-.ep{
-  display:flex;
-  background:#111;
-  margin:10px;
-  border-radius:12px;
-  overflow:hidden;
-}
-.ep img{
-  width:120px;
-  object-fit:cover;
-}
-.ep div{
-  padding:10px;
-}
-
-/* PLAYER */
-video{
-  width:100%;
-  margin-top:10px;
-}
-
-/* BOTÕES */
-button{
-  background:#0f0;
-  border:none;
-  padding:8px;
-  border-radius:8px;
-  cursor:pointer;
-  margin:3px;
-}
-
-/* RODAPÉ */
-footer{
-  background:linear-gradient(#000,#0f0);
-  text-align:center;
-  padding:20px;
-}
-
-/* ADMIN */
-#admin{
-  position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-  background:#111;
-  padding:10px;
-  display:none;
-  max-height:50%;
-  overflow:auto;
-}
-
-input,select{
-  width:100%;
-  padding:8px;
-  margin:5px 0;
-}
-
-/* UTIL */
-.hidden{display:none}
-</style>
-</head>
-
-<body>
-
-<header>
-  🐾 Chat Noir Brasil
-  <div class="nav">
-    <button onclick="irHome()">🏠</button>
-    <button onclick="loginADM()">⚙️</button>
-  </div>
-</header>
-
-<div class="banner">
-  <h3>Novo episódio!</h3>
-  <p>Clique abaixo para assistir</p>
-  <button onclick="abrirPlayer(0,0)">▶ Assistir</button>
-</div>
-
-<!-- HOME -->
-<div id="home">
-  <h3 style="text-align:center">Temporadas</h3>
-  <div class="grid" id="grid"></div>
-</div>
-
-<!-- LISTA -->
-<div id="lista" class="hidden"></div>
-
-<!-- PLAYER -->
-<div id="player" class="hidden">
-  <button onclick="voltar()">⬅ Voltar</button>
-  <h2 id="titulo"></h2>
-  <div id="idiomas"></div>
-  <video id="video" controls></video>
-</div>
-
-<!-- ADMIN -->
-<div id="admin">
-  <h3>Modo ADM</h3>
-
-  <input id="nomeSerie" placeholder="Nome da série">
-  <input id="imgSerie" placeholder="Imagem URL">
-  <button onclick="criarSerie()">Criar Série</button>
-
-  <hr>
-
-  <select id="serieSel"></select>
-  <input id="nomeEp" placeholder="Nome episódio">
-
-  <input id="idiomaNome" placeholder="Idioma (BR)">
-  <input id="idiomaLink" placeholder="Link vídeo">
-  <button onclick="addIdioma()">+ idioma</button>
-
-  <ul id="listaIdiomas"></ul>
-
-  <button onclick="salvarEp()">Salvar episódio</button>
-</div>
-
-<footer>
-  <h2>Chat Noir Brasil</h2>
-  <p>Site de fãs</p>
-</footer>
-
 <script>
-let db = JSON.parse(localStorage.getItem("db")) || {
-  series:[
-    {
-      nome:"1ª Temporada",
-      img:"https://picsum.photos/300/400",
-      eps:[
-        {
-          nome:"Episódio 1",
-          idiomas:[
-            {nome:"BR",link:"https://www.w3schools.com/html/mov_bbb.mp4"},
-            {nome:"EN",link:"https://www.w3schools.com/html/movie.mp4"}
-          ]
-        }
-      ]
-    }
-  ]
-};
+let db = JSON.parse(localStorage.getItem("db")) || { series: [] };
 
-let serieAtual=0;
-let idiomasTemp=[];
+let serieAtual = null;
+let epAtual = null;
 
-/* HOME */
+/* ---------- RENDER ---------- */
 function render(){
-  const grid=document.getElementById("grid");
-  grid.innerHTML="";
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+
   db.series.forEach((s,i)=>{
-    grid.innerHTML+=`
+    grid.innerHTML += `
     <div class="card" onclick="abrirLista(${i})">
-      <img src="${s.img}" onerror="this.src='https://via.placeholder.com/300x400?text=SEM+IMAGEM'">
+      <img src="${s.img}" onerror="this.src='https://via.placeholder.com/300x400'">
       <p>${s.nome}</p>
     </div>`;
   });
 }
 
-/* LISTA */
+/* ---------- LISTA ---------- */
 function abrirLista(i){
   serieAtual=i;
   esconderTudo();
   let lista=document.getElementById("lista");
   lista.classList.remove("hidden");
-  lista.innerHTML=`<button onclick="voltar()">⬅</button><h2>${db.series[i].nome}</h2>`;
+
+  lista.innerHTML = `
+  <button onclick="voltar()">⬅</button>
+  <h2>${db.series[i].nome}</h2>
+  `;
 
   db.series[i].eps.forEach((ep,index)=>{
-    lista.innerHTML+=`
+    lista.innerHTML += `
     <div class="ep">
       <img src="${db.series[i].img}">
       <div>
         <h4>${ep.nome}</h4>
-        <button onclick="abrirPlayer(${i},${index})">Assistir</button>
+        <button onclick="abrirPlayer(${i},${index})">▶</button>
+        <button onclick="editarEp(${index})">✏️</button>
         <button onclick="removerEp(${index})">❌</button>
       </div>
     </div>`;
   });
 }
 
-/* PLAYER */
+/* ---------- PLAYER ---------- */
 function abrirPlayer(s,e){
   esconderTudo();
   document.getElementById("player").classList.remove("hidden");
@@ -244,8 +54,10 @@ function abrirPlayer(s,e){
 
   let div=document.getElementById("idiomas");
   div.innerHTML="";
-  ep.idiomas.forEach(i=>{
-    div.innerHTML+=`<button onclick="trocar('${i.link}')">${i.nome}</button>`;
+  ep.idiomas.forEach((i,index)=>{
+    div.innerHTML += `
+      <button onclick="trocar('${i.link}')">${i.nome}</button>
+    `;
   });
 
   trocar(ep.idiomas[0].link);
@@ -259,44 +71,135 @@ function voltar(){
   location.reload();
 }
 
-function irHome(){
-  location.reload();
-}
-
-/* ADM */
+/* ---------- ADM ---------- */
 function loginADM(){
   let s=prompt("Senha:");
   if(s==="1234"){
-    document.getElementById("admin").style.display="block";
-    atualizarSelect();
+    abrirPainel();
   }
 }
 
+function abrirPainel(){
+  esconderTudo();
+  let lista=document.getElementById("lista");
+  lista.classList.remove("hidden");
+
+  lista.innerHTML = `
+    <h2>Modo ADM</h2>
+
+    <h3>Series</h3>
+    ${db.series.map((s,i)=>`
+      <div class="ep">
+        <img src="${s.img}">
+        <div>
+          <b>${s.nome}</b><br>
+          <button onclick="editarSerie(${i})">✏️</button>
+          <button onclick="removerSerie(${i})">❌</button>
+        </div>
+      </div>
+    `).join("")}
+
+    <hr>
+
+    <h3>Nova Série</h3>
+    <input id="novaSerieNome" placeholder="Nome">
+    <input id="novaSerieImg" placeholder="Imagem">
+    <button onclick="criarSerie()">Criar</button>
+  `;
+}
+
+/* ---------- SERIE ---------- */
 function criarSerie(){
   db.series.push({
-    nome:document.getElementById("nomeSerie").value,
-    img:document.getElementById("imgSerie").value,
+    nome:document.getElementById("novaSerieNome").value,
+    img:document.getElementById("novaSerieImg").value,
     eps:[]
   });
-  salvar(); render();
-}
-
-function addIdioma(){
-  idiomasTemp.push({
-    nome:document.getElementById("idiomaNome").value,
-    link:document.getElementById("idiomaLink").value
-  });
-  document.getElementById("listaIdiomas").innerHTML+=`<li>${idiomasTemp.slice(-1)[0].nome}</li>`;
-}
-
-function salvarEp(){
-  let i=document.getElementById("serieSel").value;
-  db.series[i].eps.push({
-    nome:document.getElementById("nomeEp").value,
-    idiomas:idiomasTemp
-  });
-  idiomasTemp=[];
   salvar();
+  abrirPainel();
+}
+
+function editarSerie(i){
+  let s = db.series[i];
+
+  document.getElementById("lista").innerHTML = `
+    <h2>Editar Série</h2>
+
+    <input id="nomeSerie" value="${s.nome}">
+    <input id="imgSerie" value="${s.img}">
+    <button onclick="salvarSerie(${i})">Salvar</button>
+
+    <h3>Episódios</h3>
+    ${s.eps.map((ep,idx)=>`
+      <div>
+        ${ep.nome}
+        <button onclick="editarEp(${idx},${i})">✏️</button>
+      </div>
+    `).join("")}
+
+    <hr>
+
+    <input id="novoEpNome" placeholder="Novo episódio">
+    <button onclick="criarEp(${i})">Adicionar episódio</button>
+
+    <br><br>
+    <button onclick="abrirPainel()">⬅ Voltar</button>
+  `;
+}
+
+function salvarSerie(i){
+  db.series[i].nome = document.getElementById("nomeSerie").value;
+  db.series[i].img = document.getElementById("imgSerie").value;
+  salvar();
+  abrirPainel();
+}
+
+function removerSerie(i){
+  db.series.splice(i,1);
+  salvar();
+  abrirPainel();
+}
+
+/* ---------- EP ---------- */
+function criarEp(i){
+  db.series[i].eps.push({
+    nome:document.getElementById("novoEpNome").value,
+    idiomas:[]
+  });
+  salvar();
+  editarSerie(i);
+}
+
+function editarEp(e,sIndex=serieAtual){
+  let ep = db.series[sIndex].eps[e];
+
+  document.getElementById("lista").innerHTML = `
+    <h2>Editar Episódio</h2>
+
+    <input id="nomeEp" value="${ep.nome}">
+    <button onclick="salvarEp(${e},${sIndex})">Salvar</button>
+
+    <h3>Idiomas</h3>
+    ${ep.idiomas.map((i,idx)=>`
+      <div>
+        ${i.nome}
+        <button onclick="removerIdioma(${e},${idx})">❌</button>
+      </div>
+    `).join("")}
+
+    <input id="idiomaNome" placeholder="BR">
+    <input id="idiomaLink" placeholder="link">
+    <button onclick="addIdioma(${e},${sIndex})">Adicionar</button>
+
+    <br><br>
+    <button onclick="editarSerie(${sIndex})">⬅ Voltar</button>
+  `;
+}
+
+function salvarEp(e,s){
+  db.series[s].eps[e].nome = document.getElementById("nomeEp").value;
+  salvar();
+  editarSerie(s);
 }
 
 function removerEp(i){
@@ -305,19 +208,27 @@ function removerEp(i){
   abrirLista(serieAtual);
 }
 
-function atualizarSelect(){
-  let sel=document.getElementById("serieSel");
-  sel.innerHTML="";
-  db.series.forEach((s,i)=>{
-    sel.innerHTML+=`<option value="${i}">${s.nome}</option>`;
+/* ---------- IDIOMAS ---------- */
+function addIdioma(e,s){
+  db.series[s].eps[e].idiomas.push({
+    nome:document.getElementById("idiomaNome").value,
+    link:document.getElementById("idiomaLink").value
   });
+  salvar();
+  editarEp(e,s);
 }
 
+function removerIdioma(e,i){
+  db.series[serieAtual].eps[e].idiomas.splice(i,1);
+  salvar();
+  editarEp(e,serieAtual);
+}
+
+/* ---------- UTIL ---------- */
 function salvar(){
-  localStorage.setItem("db",JSON.stringify(db));
+  localStorage.setItem("db", JSON.stringify(db));
 }
 
-/* UTIL */
 function esconderTudo(){
   document.getElementById("home").classList.add("hidden");
   document.getElementById("lista").classList.add("hidden");
@@ -327,6 +238,3 @@ function esconderTudo(){
 /* START */
 render();
 </script>
-
-</body>
-</html>
