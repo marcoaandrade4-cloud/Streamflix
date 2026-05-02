@@ -7,11 +7,6 @@ function login(){
   const passInput = document.getElementById("pass");
   const painel = document.getElementById("painel");
 
-  if(!userInput || !passInput || !painel){
-    alert("Erro no ADM (IDs não encontrados)");
-    return;
-  }
-
   if(userInput.value === "marco" && passInput.value === "22510827"){
     painel.style.display = "block";
     carregarLista();
@@ -104,7 +99,6 @@ function salvarEp(){
     return;
   }
 
-  // remove destaque antigo
   item.temporadas.forEach(t=>{
     t.episodios.forEach(ep=>ep.novo=false);
   });
@@ -120,4 +114,4 @@ function salvarEp(){
   });
 
   tempLinks = {};
-  }
+    }
