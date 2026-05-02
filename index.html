@@ -6,8 +6,25 @@
 
 <style>
 body { margin:0; background:#000; color:#fff; font-family:Arial; }
-header { background:#111; padding:15px; text-align:center; }
-.banner { text-align:center; color:#00ff00; padding:10px; }
+
+header {
+  background:#111;
+  padding:15px;
+  text-align:center;
+}
+
+.banner {
+  text-align:center;
+  color:#00ff00;
+  padding:10px;
+}
+
+.card {
+  background:#111;
+  margin:15px;
+  padding:15px;
+  border-radius:10px;
+}
 
 .grid {
   display:grid;
@@ -16,13 +33,10 @@ header { background:#111; padding:15px; text-align:center; }
   padding:10px;
 }
 
-.card {
-  background:#111;
-  padding:10px;
+img {
+  width:100%;
   border-radius:10px;
 }
-
-img { width:100%; border-radius:10px; }
 
 button {
   background:#00ff00;
@@ -49,10 +63,12 @@ button {
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, getDocs, query, orderBy, where, doc, getDoc }
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  getFirestore, collection, getDocs,
+  query, orderBy, where, doc, getDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// 🔥 CONFIG
+// 🔥 SUA CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyBkpOKakidlZ2WVZNBI9oEFHEjs1EqCt78",
   authDomain: "streamflix-62461.firebaseapp.com",
@@ -62,94 +78,61 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// 🔥 DADOS FALLBACK (se Firebase falhar)
-const fallback = {
-  series: [
-    {
-      id: "1",
-      nome: "Miraculous",
-      capa: "https://i.imgur.com/2DhmtJ4.jpg"
-    }
-  ],
-  episodios: [
-    {
-      id: "1",
-      serie: "1",
-      nome: "Ep 1 - Origem",
-      ordem: 1,
-      capa: "https://i.imgur.com/2DhmtJ4.jpg",
-      video: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-    }
-  ]
-};
-
 // 🔥 ROTEAMENTO
-const params = new URLSearchParams(window.location.search);
+const params = new URLSearchParams(location.search);
 const serieId = params.get("serie");
 const epId = params.get("ep");
 
 // 🔥 PLAYER
 function player(link) {
   if (link.includes("youtube")) {
-    return `<iframe width="100%" height="300" src="${link.replace("watch?v=", "embed/")}" allowfullscreen></iframe>`;
+    return `<iframe width="100%" height="300"
+      src="${link.replace("watch?v=", "embed/")}"
+      allowfullscreen></iframe>`;
   }
+
   if (link.includes("drive")) {
-    return `<iframe width="100%" height="300" src="${link.replace("/view", "/preview")}" allowfullscreen></iframe>`;
+    return `<iframe width="100%" height="300"
+      src="${link.replace("/view", "/preview")}"
+      allowfullscreen></iframe>`;
   }
+
   return `<video src="${link}" controls width="100%"></video>`;
 }
 
-// 🔥 CARREGAR DADOS (Firebase ou fallback)
-async function getSeries() {
-  try {
-    const snap = await getDocs(collection(db, "series"));
-    if (snap.empty) throw "vazio";
-
-    let arr = [];
-    snap.forEach(doc => arr.push({ id: doc.id, ...doc.data() }));
-    return arr;
-
-  } catch {
-    return fallback.series;
-  }
-}
-
-async function getEpisodios() {
-  try {
-    const snap = await getDocs(query(collection(db, "episodios"), orderBy("ordem")));
-    if (snap.empty) throw "vazio";
-
-    let arr = [];
-    snap.forEach(doc => arr.push({ id: doc.id, ...doc.data() }));
-    return arr;
-
-  } catch {
-    return fallback.episodios;
-  }
-}
-
-// 🔥 NOVO EP
+// 🔥 NOVO EPISÓDIO
 async function novoEp() {
-  const eps = await getEpisodios();
-  const ultimo = eps[eps.length - 1];
+  const q = query(
+    collection(db, "episodios"),
+    orderBy("ordem", "desc")
+  );
+
+  const snap = await getDocs(q);
+  if (snap.empty) return;
+
+  const docSnap = snap.docs[0];
+  const ep = docSnap.data();
 
   document.getElementById("novo").innerHTML = `
     <div class="card">
       <h2>Novo episódio!</h2>
-      <p>${ultimo.nome}</p>
-      <button onclick="abrirEp('${ultimo.id}')">Assistir</button>
+      <p>${ep.nome}</p>
+      <button onclick="abrirEp('${docSnap.id}')">Assistir</button>
     </div>
   `;
 }
 
-// 🔥 HOME
+// 🔥 HOME (SÉRIES)
 async function home() {
-  const series = await getSeries();
+  const snap = await getDocs(collection(db, "series"));
 
   let html = '<div class="grid">';
-  series.forEach(s => {
+
+  snap.forEach(doc => {
+    const s = doc.data();
+
     html += `
-      <div onclick="abrirSerie('${s.id}')">
+      <div onclick="abrirSerie('${doc.id}')">
         <img src="${s.capa}">
         <p>${s.nome}</p>
       </div>
@@ -160,17 +143,26 @@ async function home() {
   document.getElementById("conteudo").innerHTML = html;
 }
 
-// 🔥 SÉRIE
+// 🔥 LISTAR EPISÓDIOS
 async function serie(id) {
-  const eps = await getEpisodios();
+  const q = query(
+    collection(db, "episodios"),
+    where("serie", "==", id),
+    orderBy("ordem")
+  );
+
+  const snap = await getDocs(q);
 
   let html = "";
-  eps.filter(e => e.serie == id).forEach(ep => {
+
+  snap.forEach(doc => {
+    const ep = doc.data();
+
     html += `
       <div class="card">
         <img src="${ep.capa}">
         <h3>${ep.nome}</h3>
-        <button onclick="abrirEp('${ep.id}')">Assistir</button>
+        <button onclick="abrirEp('${doc.id}')">Assistir</button>
       </div>
     `;
   });
@@ -178,10 +170,10 @@ async function serie(id) {
   document.getElementById("conteudo").innerHTML = html;
 }
 
-// 🔥 EPISÓDIO
+// 🔥 PLAYER PAGE
 async function episodio(id) {
-  const eps = await getEpisodios();
-  const ep = eps.find(e => e.id == id);
+  const snap = await getDoc(doc(db, "episodios", id));
+  const ep = snap.data();
 
   document.getElementById("conteudo").innerHTML = `
     <div class="card">
@@ -192,15 +184,24 @@ async function episodio(id) {
 }
 
 // 🔥 NAVEGAÇÃO
-window.abrirSerie = (id) => location.search = "?serie=" + id;
-window.abrirEp = (id) => location.search = "?ep=" + id;
+window.abrirSerie = (id) => {
+  location.search = "?serie=" + id;
+};
+
+window.abrirEp = (id) => {
+  location.search = "?ep=" + id;
+};
 
 // 🔥 INIT
 novoEp();
 
-if (epId) episodio(epId);
-else if (serieId) serie(serieId);
-else home();
+if (epId) {
+  episodio(epId);
+} else if (serieId) {
+  serie(serieId);
+} else {
+  home();
+}
 
 </script>
 
