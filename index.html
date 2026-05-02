@@ -1,121 +1,21 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>StreamFlix</title>
-
-<style>
-body{margin:0;background:#000;color:#fff;font-family:Arial}
-
-/* HEADER */
-.header{
- display:flex;
- justify-content:space-between;
- align-items:center;
- background:#0d1f14;
- margin:10px;
- padding:15px;
- border-radius:20px;
-}
-
-.logo{color:#00ff66;font-weight:bold}
-.user{background:#00ff66;padding:10px;border-radius:10px}
-
-/* CARD NOVO EP */
-.episodio{
- margin:15px;
- background:#0f1f14;
- padding:20px;
- border-radius:20px;
- text-align:center;
-}
-
-.episodio button{
- background:#00ff00;
- border:none;
- padding:15px;
- border-radius:20px;
- font-weight:bold;
-}
-
-/* GRID */
-.grid{
- display:grid;
- grid-template-columns:repeat(2,1fr);
- gap:15px;
- padding:15px;
-}
-
-.card img{
- width:100%;
- border-radius:20px;
-}
-.card p{text-align:center}
-</style>
+<title>STREAMFLIX</title>
+<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<div class="header">
- <div class="logo">🐾 Chat Noir Brasil</div>
- <div class="user" onclick="location.href='admin.html'">👤</div>
-</div>
+<header class="topo">
+  <h1>STREAMFLIX 🎬</h1>
+  <input type="text" id="busca" placeholder="Pesquisar...">
+  <button onclick="abrirAdmin()">ADM</button>
+</header>
 
-<div class="episodio">
- <h2>Novo episódio!</h2>
- <button onclick="novo()">▶ Assistir</button>
-</div>
+<div id="catalogo" class="grid"></div>
 
-<h2 style="padding-left:10px">
-Bem-vindo ao <span style="color:#00ff66">Chat Noir Brasil</span>
-</h2>
-
-<div class="grid" id="grid"></div>
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-const app = initializeApp({
- apiKey:"AIzaSyBkpOKakidlZ2WVZNBI9oEFHEjs1EqCt78",
- projectId:"streamflix-62461"
-});
-const db = getFirestore(app);
-
-async function load(){
- const snap = await getDocs(collection(db,"conteudos"));
-
- snap.forEach(doc=>{
-  const c = doc.data();
-
-  const div=document.createElement("div");
-  div.className="card";
-
-  div.innerHTML=`
-   <img src="${c.cover}">
-   <p>${c.title}</p>
-  `;
-
-  div.onclick=()=>{
-   localStorage.setItem("serie", JSON.stringify(c));
-   location.href="episodios.html";
-  };
-
-  grid.appendChild(div);
- });
-}
-
-async function novo(){
- const snap = await getDocs(collection(db,"conteudos"));
- let last=null;
- snap.forEach(d=> last=d.data());
-
- localStorage.setItem("serie", JSON.stringify(last));
- location.href="episodios.html";
-}
-
-load();
-</script>
-
+<script src="app.js"></script>
 </body>
 </html>
