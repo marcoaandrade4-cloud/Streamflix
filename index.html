@@ -9,19 +9,15 @@
 
 <header class="topo">
   <div class="logo">🐾 StreamFlix</div>
-
-  <!-- ADM SEM JS (100% confiável) -->
-  <a href="./adm.html" class="user">👤</a>
+  <a href="adm.html" class="user">👤</a>
 </header>
 
-<section class="novo">
-  <h2>Novo episódio!</h2>
-  <p id="epNome"></p>
-  <a id="btnAssistir" class="btn">▶ Assistir</a>
-</section>
+<input id="busca" placeholder="Pesquisar..." oninput="buscar()">
 
-<h2>Catálogo</h2>
-<div id="grid" class="grid"></div>
+<h2>Novo episódio</h2>
+<div id="novoEp"></div>
+
+<div id="conteudo"></div>
 
 <script src="script.js"></script>
 </body>
