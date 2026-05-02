@@ -1,303 +1,206 @@
-<!DOCTYPE html><html lang="pt-br">
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chat Noir Brasil</title><style>
-body{margin:0;background:#000;color:#fff;font-family:Arial}
-header{background:#00ff00;color:#000;padding:12px;display:flex;justify-content:space-between;align-items:center}
-button{background:#00ff00;border:none;padding:6px 10px;border-radius:6px;margin:3px}
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:10px}
-.card{background:#111;border-radius:10px;overflow:hidden}
-.card img{width:100%;height:220px;object-fit:cover}
-.ep{display:flex;background:#111;margin:10px;border-radius:10px;overflow:hidden}
-.ep img{width:120px;height:90px;object-fit:cover}
-.hidden{display:none}
-input{width:100%;margin:5px 0;padding:6px;border-radius:5px;border:none}
-textarea{width:100%;margin:5px 0;padding:6px;border-radius:5px;border:none}
-iframe,video{width:100%;height:260px;border:none;border-radius:10px}
-.banner{margin:10px;background:#111;padding:15px;border-radius:10px;text-align:center}
-footer{background:linear-gradient(#000,#00ff00);text-align:center;padding:20px;margin-top:20px}
-small{color:#aaa}
-</style></head><body><header>
-<b>🐾 Chat Noir Brasil</b>
-<div>
-<button onclick="home()">🏠</button>
-<button onclick="adm()">⚙️</button>
+<title>Stream Flix</title>
+
+<style>
+body {
+  margin: 0;
+  background: #000;
+  color: #fff;
+  font-family: Arial;
+}
+
+header {
+  background: #111;
+  padding: 15px;
+  text-align: center;
+}
+
+.banner {
+  text-align: center;
+  color: #00ff00;
+  padding: 15px;
+}
+
+.card {
+  background: #111;
+  margin: 15px;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+button {
+  background: #00ff00;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  padding: 10px;
+}
+
+img {
+  width: 100%;
+  border-radius: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>Stream Flix</h1>
+</header>
+
+<div class="banner">
+  <h2>Bem-vindo ao Stream Flix!</h2>
 </div>
-</header><div class="banner">
-<h3>Novo episódio!</h3>
-<button onclick="player(0)">▶ Assistir</button>
-</div><div id="home">
-<h3 style="text-align:center">Temporadas</h3>
-<div class="grid" id="grid"></div>
-</div><div id="lista" class="hidden"></div>
-<div id="player" class="hidden"></div>
-<div id="admin" class="hidden"></div><footer>
-<h2>Chat Noir Brasil</h2>
-<p>Site de fãs</p>
-</footer><script>
-let db = JSON.parse(localStorage.getItem("db")) || { series:[] };
-let serieAtual=0;
-let admLogado=false;
 
-/* ---------- LOGIN ADM ---------- */
-function adm(){
-  let senha = prompt("Senha ADM:");
-  if(senha !== "1234"){ alert("Negado"); return; }
-  admLogado=true;
-  abrirADM();
+<div id="novo"></div>
+
+<div id="conteudo"></div>
+
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, getDocs, query, orderBy, doc, getDoc, where } 
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// 🔥 SUA CONFIG
+const firebaseConfig = {
+  apiKey: "AIzaSyBkpOKakidlZ2WVZNBI9oEFHEjs1EqCt78",
+  authDomain: "streamflix-62461.firebaseapp.com",
+  projectId: "streamflix-62461",
+  storageBucket: "streamflix-62461.firebasestorage.app",
+  messagingSenderId: "894473429433",
+  appId: "1:894473429433:web:51a0215903fbb277305668"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// 🔥 ROTEAMENTO SIMPLES
+const params = new URLSearchParams(window.location.search);
+const serieId = params.get("serie");
+const epId = params.get("ep");
+
+// 🔥 PLAYER
+function player(link) {
+  if (link.includes("youtube")) {
+    return `<iframe width="100%" height="300" src="${link.replace("watch?v=", "embed/")}" allowfullscreen></iframe>`;
+  }
+  if (link.includes("drive")) {
+    return `<iframe width="100%" height="300" src="${link.replace("/view", "/preview")}" allowfullscreen></iframe>`;
+  }
+  return `<video src="${link}" controls width="100%"></video>`;
 }
 
-/* ---------- HOME ---------- */
-function render(){
-  let grid=document.getElementById("grid");
-  grid.innerHTML="";
+// 🔥 NOVO EPISÓDIO (NUNCA SOME)
+async function novoEp() {
+  const q = query(collection(db, "episodios"), orderBy("ordem"));
+  const snap = await getDocs(q);
 
-  db.series.forEach((s,i)=>{
-    grid.innerHTML+=`
-    <div class="card" onclick="lista(${i})">
-      <img src="${s.img||'https://via.placeholder.com/300x400'}">
-      <p>${s.nome}</p>
-      <small>${s.ano||""}</small>
-    </div>`;
-  });
-}
+  let ultimo;
+  snap.forEach(doc => ultimo = doc);
 
-/* ---------- LISTA EP ---------- */
-function lista(i){
-  serieAtual=i;
-  esconder();
+  if (ultimo) {
+    const ep = ultimo.data();
 
-  let s=db.series[i];
-  let div=document.getElementById("lista");
-  div.classList.remove("hidden");
-
-  div.innerHTML=`
-  <button onclick="home()">⬅</button>
-  <h2>${s.nome}</h2>
-  <p>${s.sinopse||""}</p>
-  `;
-
-  s.eps.forEach((ep,index)=>{
-    div.innerHTML+=`
-    <div class="ep">
-      <img src="${ep.img||s.img}">
-      <div style="padding:5px">
-        <h4>${ep.nome}</h4>
-        <p>${ep.sinopse||""}</p>
-
-        <button onclick="player(${index})">▶</button>
-
-        ${admLogado?`<button onclick="editEp(${index})">✏️</button>`:""}
-        ${admLogado?`<button onclick="delEp(${index})">❌</button>`:""}
+    document.getElementById("novo").innerHTML = `
+      <div class="card">
+        <h2>Novo episódio!</h2>
+        <p>${ep.nome}</p>
+        <button onclick="abrirEp('${ultimo.id}')">Assistir</button>
       </div>
-    </div>`;
-  });
+    `;
+  }
 }
 
-/* ---------- PLAYER ---------- */
-function player(e){
-  esconder();
-  let ep=db.series[serieAtual].eps[e];
+// 🔥 HOME
+async function home() {
+  const snap = await getDocs(collection(db, "series"));
+  let html = '<div class="grid">';
 
-  let div=document.getElementById("player");
-  div.classList.remove("hidden");
+  snap.forEach(doc => {
+    const s = doc.data();
+    html += `
+      <div onclick="abrirSerie('${doc.id}')">
+        <img src="${s.capa}">
+        <p>${s.nome}</p>
+      </div>
+    `;
+  });
 
-  div.innerHTML=`
-  <button onclick="lista(${serieAtual})">⬅</button>
-  <h2>${ep.nome}</h2>
-  <p>${ep.sinopse||""}</p>
-  <div id="idiomas"></div>
-  <div id="videoBox"></div>
+  html += "</div>";
+  document.getElementById("conteudo").innerHTML = html;
+}
+
+// 🔥 SÉRIE
+async function serie(id) {
+  const q = query(
+    collection(db, "episodios"),
+    where("serie", "==", id),
+    orderBy("ordem")
+  );
+
+  const snap = await getDocs(q);
+  let html = "";
+
+  snap.forEach(doc => {
+    const ep = doc.data();
+
+    html += `
+      <div class="card">
+        <img src="${ep.capa}">
+        <h3>${ep.nome}</h3>
+        <button onclick="abrirEp('${doc.id}')">Assistir</button>
+      </div>
+    `;
+  });
+
+  document.getElementById("conteudo").innerHTML = html;
+}
+
+// 🔥 PLAYER PAGE
+async function episodio(id) {
+  const docSnap = await getDoc(doc(db, "episodios", id));
+  const ep = docSnap.data();
+
+  document.getElementById("conteudo").innerHTML = `
+    <div class="card">
+      <h2>${ep.nome}</h2>
+      ${player(ep.video)}
+    </div>
   `;
-
-  let idiomas=document.getElementById("idiomas");
-  ep.idiomas.forEach(i=>{
-    idiomas.innerHTML+=`<button onclick="trocar('${i.link}')">${i.nome}</button>`;
-  });
-
-  trocar(ep.idiomas[0]?.link);
 }
 
-/* ---------- PLAYER ENGINE ---------- */
-function trocar(link){
-  let box=document.getElementById("videoBox");
+// 🔥 NAVEGAÇÃO
+window.abrirSerie = (id) => {
+  window.location.search = "?serie=" + id;
+};
 
-  if(!link){ box.innerHTML="Sem vídeo"; return; }
+window.abrirEp = (id) => {
+  window.location.search = "?ep=" + id;
+};
 
-  if(link.includes("youtube")){
-    let id = link.split("v=")[1] || link.split("/").pop();
-    box.innerHTML=`<iframe src="https://www.youtube.com/embed/${id}" allowfullscreen></iframe>`;
-    return;
-  }
+// 🔥 INICIAR
+novoEp();
 
-  if(link.includes("drive.google.com")){
-    let id = link.split("/d/")[1]?.split("/")[0];
-    box.innerHTML=`<iframe src="https://drive.google.com/file/d/${id}/preview"></iframe>`;
-    return;
-  }
-
-  box.innerHTML=`<video controls src="${link}"></video>`;
+if (epId) {
+  episodio(epId);
+} else if (serieId) {
+  serie(serieId);
+} else {
+  home();
 }
 
-/* ---------- ADM ---------- */
-function abrirADM(){
-  esconder();
-  let div=document.getElementById("admin");
-  div.classList.remove("hidden");
-
-  div.innerHTML=`
-  <h2>PAINEL ADM</h2>
-
-  ${db.series.map((s,i)=>`
-    <div>
-      ${s.nome}
-      <button onclick="editSerie(${i})">✏️</button>
-      <button onclick="delSerie(${i})">❌</button>
-    </div>
-  `).join("")}
-
-  <hr>
-
-  <input id="sNome" placeholder="Nome">
-  <input id="sImg" placeholder="Imagem URL">
-  <input id="sAno" placeholder="Ano">
-  <textarea id="sSinopse" placeholder="Sinopse"></textarea><button onclick="addSerie()">Criar Série</button>
-
-<br><br>
-<button onclick="home()">⬅</button>
-`;
-}
-
-/* ---------- SERIE ---------- */
-function addSerie(){
-db.series.push({
-nome:sNome.value,
-img:sImg.value,
-ano:sAno.value,
-sinopse:sSinopse.value,
-eps:[]
-});
-save(); abrirADM();
-}
-
-function editSerie(i){
-serieAtual=i;
-let s=db.series[i];
-
-let div=document.getElementById("admin");
-div.innerHTML=`
-
-  <h2>Editar Série</h2>  <input id="n" value="${s.nome}">
-  <input id="img" value="${s.img}">
-  <input id="ano" value="${s.ano}">
-  <textarea id="sinopse">${s.sinopse||""}</textarea><button onclick="saveSerie(${i})">Salvar</button>
-
-  <h3>Episódios</h3>
-  ${s.eps.map((e,idx)=>`
-    <div>
-      ${e.nome}
-      <button onclick="editEp(${idx})">✏️</button>
-    </div>
-  `).join("")}  <input id="novoEp" placeholder="Novo episódio">
-  <button onclick="addEp(${i})">Adicionar Episódio</button><br><br>
-<button onclick="abrirADM()">⬅</button>
-`;
-}
-
-function saveSerie(i){
-let s=db.series[i];
-s.nome=n.value;
-s.img=img.value;
-s.ano=ano.value;
-s.sinopse=sinopse.value;
-save(); abrirADM();
-}
-
-function delSerie(i){
-db.series.splice(i,1);
-save(); abrirADM();
-}
-
-/* ---------- EP ---------- */
-function addEp(i){
-db.series[i].eps.push({
-nome:novoEp.value,
-img:"",
-sinopse:"",
-idiomas:[]
-});
-save(); editSerie(i);
-}
-
-function editEp(e){
-let ep=db.series[serieAtual].eps[e];
-
-let div=document.getElementById("admin");
-div.innerHTML=`
-
-  <h2>Editar Episódio</h2>  <input id="nome" value="${ep.nome}">
-  <input id="imgEp" value="${ep.img}">
-  <textarea id="sinopseEp">${ep.sinopse||""}</textarea><button onclick="saveEp(${e})">Salvar</button>
-
-  <h3>Idiomas</h3>
-  ${ep.idiomas.map((i,idx)=>`
-    <div>
-      ${i.nome}
-      <button onclick="delIdioma(${e},${idx})">❌</button>
-    </div>
-  `).join("")}  <input id="iNome" placeholder="Idioma">
-  <input id="iLink" placeholder="Link vídeo">
-  <button onclick="addIdioma(${e})">Adicionar</button><br><br>
-<button onclick="abrirADM()">⬅</button>
-`;
-}
-
-function saveEp(e){
-let ep=db.series[serieAtual].eps[e];
-ep.nome=nome.value;
-ep.img=imgEp.value;
-ep.sinopse=sinopseEp.value;
-save(); abrirADM();
-}
-
-function delEp(i){
-db.series[serieAtual].eps.splice(i,1);
-save(); lista(serieAtual);
-}
-
-/* ---------- IDIOMA ---------- */
-function addIdioma(e){
-db.series[serieAtual].eps[e].idiomas.push({
-nome:iNome.value,
-link:iLink.value
-});
-save(); editEp(e);
-}
-
-function delIdioma(e,i){
-db.series[serieAtual].eps[e].idiomas.splice(i,1);
-save(); editEp(e);
-}
-
-/* ---------- UTIL ---------- */
-function save(){
-localStorage.setItem("db",JSON.stringify(db));
-}
-
-function esconder(){
-document.getElementById("home").classList.add("hidden");
-document.getElementById("lista").classList.add("hidden");
-document.getElementById("player").classList.add("hidden");
-document.getElementById("admin").classList.add("hidden");
-}
-
-function home(){
-admLogado=false;
-location.reload();
-}
-
-render();
 </script>
 
 </body>
