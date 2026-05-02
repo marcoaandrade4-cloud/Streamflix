@@ -5,89 +5,120 @@
 <title>Série</title>
 
 <style>
-body{background:#000;color:#fff;font-family:Arial;text-align:center}
-button{
- display:block;margin:10px auto;
- padding:10px;width:200px;
- background:#111;color:#fff;border:1px solid #333;
+body{background:#000;color:#fff;font-family:Arial;margin:0}
+
+/* HEADER */
+.header{
+ padding:15px;
+ text-align:center;
+ background:#0b0b0b;
+ border-bottom:2px solid #00ff66;
 }
-h2{margin-top:20px}
+
+/* LISTAS */
+.list{
+ display:flex;
+ overflow-x:auto;
+ padding:10px;
+ gap:10px;
+}
+
+.item{
+ background:#111;
+ padding:10px 15px;
+ border-radius:10px;
+ white-space:nowrap;
+ cursor:pointer;
+}
+
+.item.active{
+ background:#00ff66;
+ color:#000;
+ font-weight:bold;
+}
+
+/* PLAYER */
+.player{
+ margin:15px;
+ text-align:center;
+}
 </style>
 </head>
 
 <body>
 
-<h1 id="title"></h1>
+<div class="header">
+ <h2 id="title"></h2>
+</div>
 
-<div id="temporadas"></div>
-<div id="episodios"></div>
-<div id="idiomas"></div>
-<div id="player"></div>
+<h3 style="padding-left:10px">Temporadas</h3>
+<div class="list" id="temporadas"></div>
+
+<h3 style="padding-left:10px">Episódios</h3>
+<div class="list" id="episodios"></div>
+
+<h3 style="padding-left:10px">Idiomas</h3>
+<div class="list" id="idiomas"></div>
+
+<div class="player" id="player"></div>
 
 <script>
 const data = JSON.parse(localStorage.getItem("serie"));
-
 title.innerText = data.title;
 
-function limpar(){
+let temporadaAtual=null;
+let episodioAtual=null;
+
+data.seasons.forEach((s,i)=>{
+ const div=document.createElement("div");
+ div.className="item";
+ div.innerText="T"+(i+1);
+
+ div.onclick=()=>{
+  temporadaAtual=s;
+  atualizarEpisodios();
+ };
+
+ temporadas.appendChild(div);
+});
+
+function atualizarEpisodios(){
  episodios.innerHTML="";
  idiomas.innerHTML="";
  player.innerHTML="";
-}
 
-temporadas.innerHTML="<h2>Temporadas</h2>";
+ temporadaAtual.episodes.forEach(ep=>{
+  const div=document.createElement("div");
+  div.className="item";
+  div.innerText=ep.title;
 
-data.seasons.forEach((s,i)=>{
- const btn=document.createElement("button");
- btn.innerText="Temporada "+(i+1);
-
- btn.onclick=()=>{
-   limpar();
-   mostrarEp(s);
- };
-
- temporadas.appendChild(btn);
-});
-
-function mostrarEp(season){
- episodios.innerHTML="<h2>Episódios</h2>";
-
- season.episodes.forEach(ep=>{
-  const btn=document.createElement("button");
-  btn.innerText=ep.title;
-
-  btn.onclick=()=>{
-    idiomas.innerHTML="";
-    player.innerHTML="";
-    mostrarIdiomas(ep.languages);
+  div.onclick=()=>{
+   episodioAtual=ep;
+   atualizarIdiomas();
   };
 
-  episodios.appendChild(btn);
+  episodios.appendChild(div);
  });
 }
 
-function mostrarIdiomas(langs){
- idiomas.innerHTML="<h2>Idiomas</h2>";
+function atualizarIdiomas(){
+ idiomas.innerHTML="";
+ player.innerHTML="";
 
- langs.forEach(l=>{
-  const btn=document.createElement("button");
-  btn.innerText=l.lang;
+ episodioAtual.languages.forEach(l=>{
+  const div=document.createElement("div");
+  div.className="item";
+  div.innerText=l.lang;
 
-  btn.onclick=()=>{
-    player.innerHTML="";
-    assistir(l.url,l.type);
+  div.onclick=()=>{
+   player.innerHTML=`
+   <iframe width="90%" height="400"
+   src="https://www.youtube.com/embed/${l.url}"
+   allowfullscreen></iframe>`;
   };
 
-  idiomas.appendChild(btn);
+  idiomas.appendChild(div);
  });
-}
-
-function assistir(url,type){
- if(type==="youtube"){
-  player.innerHTML=`<iframe width="90%" height="400"
-  src="https://www.youtube.com/embed/${url}"
-  allowfullscreen></iframe>`;
- }
 }
 </script>
 
