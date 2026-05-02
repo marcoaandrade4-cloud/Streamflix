@@ -1,7 +1,7 @@
 body{background:#000;color:#fff;font-family:Arial;margin:0}
 .topo{display:flex;justify-content:space-between;padding:15px;background:#111}
 .logo{color:#00ff66}
-.user{background:#00ff66;padding:10px;border-radius:10px;cursor:pointer;user-select:none}
+.user{background:#00ff66;padding:10px;border-radius:10px;text-decoration:none;color:#000}
 .novo{background:#0b2b1c;margin:15px;padding:20px;border-radius:15px;text-align:center}
 .btn{background:#00ff66;padding:12px 25px;border-radius:20px;color:#000}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:15px;padding:15px}
