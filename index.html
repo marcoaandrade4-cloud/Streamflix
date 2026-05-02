@@ -2,33 +2,102 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Stream Flix</title>
+<title>Chat Noir Brasil</title>
 
 <style>
-body { margin:0; background:#000; color:#fff; font-family:Arial; }
+body {
+  margin:0;
+  background:#000;
+  color:#fff;
+  font-family:Arial;
+}
 
+/* HEADER */
 header {
-  background:#111;
+  background:#0b0b0b;
   padding:15px;
   display:flex;
+  align-items:center;
   justify-content:space-between;
 }
 
-button {
-  background:#00ff00;
-  border:none;
-  padding:8px;
-  border-radius:8px;
-  cursor:pointer;
+.logo {
+  font-size:20px;
+  color:#00ff00;
+  font-weight:bold;
 }
 
-.card {
+.menu {
+  display:flex;
+  gap:10px;
+}
+
+.menu button {
   background:#111;
-  margin:15px;
-  padding:15px;
+  border:none;
+  color:#fff;
+  padding:10px;
   border-radius:10px;
 }
 
+/* NOVO EP */
+.novo {
+  background:#111;
+  margin:15px;
+  padding:20px;
+  border-radius:15px;
+  text-align:center;
+}
+
+.novo button {
+  background:#00ff00;
+  border:none;
+  padding:10px 20px;
+  border-radius:10px;
+}
+
+/* GRID */
+.grid {
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:15px;
+  padding:15px;
+}
+
+.card img {
+  width:100%;
+  border-radius:15px;
+}
+
+.card h3 {
+  text-align:center;
+}
+
+/* EP LISTA */
+.ep {
+  display:flex;
+  background:#111;
+  margin:10px;
+  border-radius:10px;
+  overflow:hidden;
+}
+
+.ep img {
+  width:120px;
+}
+
+.ep div {
+  padding:10px;
+}
+
+/* PLAYER */
+.player iframe {
+  width:100%;
+  height:250px;
+  border:none;
+}
+
+/* ADM */
 input {
   width:100%;
   margin:5px 0;
@@ -40,17 +109,21 @@ input {
 <body>
 
 <header>
-  <h1>Stream Flix</h1>
-  <button onclick="abrirADM()">+</button>
+  <div class="logo">Chat Noir Brasil</div>
+  <div class="menu">
+    <button onclick="home()">🏠</button>
+    <button onclick="temporadas()">📺</button>
+    <button onclick="abrirADM()">➕</button>
+  </div>
 </header>
 
-<div id="conteudo"></div>
+<div id="app"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getFirestore, collection, getDocs, addDoc,
-  query, orderBy, where
+  query, orderBy, where, doc, getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -59,61 +132,145 @@ const firebaseConfig = {
   projectId: "streamflix-62461"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const appFirebase = initializeApp(firebaseConfig);
+const db = getFirestore(appFirebase);
 
-// 🔥 HOME
-async function home() {
+/* HOME */
+window.home = async () => {
   const snap = await getDocs(collection(db,"series"));
 
-  let html = "";
+  let html = `
+    <div class="novo" id="novoEp"></div>
+    <h2 style="text-align:center;">Bem-vindo ao Chat Noir Brasil!</h2>
+    <div class="grid">
+  `;
 
   snap.forEach(doc=>{
     const s = doc.data();
 
     html += `
-      <div class="card">
-        <img src="${s.capa}" width="100%">
+      <div class="card" onclick="abrirSerie('${doc.id}')">
+        <img src="${s.capa}">
         <h3>${s.nome}</h3>
       </div>
     `;
   });
 
-  document.getElementById("conteudo").innerHTML = html;
+  html += "</div>";
+
+  document.getElementById("app").innerHTML = html;
+
+  carregarNovo();
+};
+
+/* NOVO EP */
+async function carregarNovo() {
+  const q = query(collection(db,"episodios"), orderBy("ordem","desc"));
+  const snap = await getDocs(q);
+
+  if (snap.empty) return;
+
+  const ep = snap.docs[0];
+
+  document.getElementById("novoEp").innerHTML = `
+    <h3>Novo episódio!</h3>
+    <p>${ep.data().nome}</p>
+    <button onclick="abrirEp('${ep.id}')">Assistir</button>
+  `;
 }
 
-// 🔥 ADM
-window.abrirADM = () => {
-  document.getElementById("conteudo").innerHTML = `
-    <div class="card">
-      <h2>Adicionar Série</h2>
-      <input id="nomeSerie" placeholder="Nome">
-      <input id="capaSerie" placeholder="URL da capa">
-      <button onclick="addSerie()">Salvar</button>
+/* TEMPORADAS */
+window.temporadas = async () => {
+  const snap = await getDocs(collection(db,"series"));
 
-      <h2>Adicionar Episódio</h2>
-      <input id="nomeEp" placeholder="Nome">
-      <input id="serieId" placeholder="ID da série">
-      <input id="ordem" placeholder="Ordem">
-      <input id="capaEp" placeholder="Capa">
-      <input id="video" placeholder="Link vídeo">
-      <button onclick="addEp()">Salvar</button>
+  let html = `<h2 style="text-align:center;">Temporadas</h2>`;
+
+  snap.forEach(doc=>{
+    const s = doc.data();
+
+    html += `
+      <div class="ep" onclick="abrirSerie('${doc.id}')">
+        <img src="${s.capa}">
+        <div>
+          <h3>${s.nome}</h3>
+        </div>
+      </div>
+    `;
+  });
+
+  document.getElementById("app").innerHTML = html;
+};
+
+/* EPISÓDIOS */
+window.abrirSerie = async (id) => {
+  const q = query(
+    collection(db,"episodios"),
+    where("serie","==",id),
+    orderBy("ordem")
+  );
+
+  const snap = await getDocs(q);
+
+  let html = `<h2 style="text-align:center;">Episódios</h2>`;
+
+  snap.forEach(doc=>{
+    const ep = doc.data();
+
+    html += `
+      <div class="ep">
+        <img src="${ep.capa}">
+        <div>
+          <h3>${ep.nome}</h3>
+          <button onclick="abrirEp('${doc.id}')">Assistir</button>
+        </div>
+      </div>
+    `;
+  });
+
+  document.getElementById("app").innerHTML = html;
+};
+
+/* PLAYER */
+window.abrirEp = async (id) => {
+  const snap = await getDoc(doc(db,"episodios",id));
+  const ep = snap.data();
+
+  document.getElementById("app").innerHTML = `
+    <div class="player">
+      <h2>${ep.nome}</h2>
+      <iframe src="${ep.video.replace("watch?v=","embed/")}" allowfullscreen></iframe>
     </div>
   `;
 };
 
-// 🔥 ADD SÉRIE
+/* ADM */
+window.abrirADM = () => {
+  document.getElementById("app").innerHTML = `
+    <h2>ADM</h2>
+
+    <input id="nomeSerie" placeholder="Nome da série">
+    <input id="capaSerie" placeholder="Capa">
+    <button onclick="addSerie()">Adicionar Série</button>
+
+    <hr>
+
+    <input id="nomeEp" placeholder="Nome do episódio">
+    <input id="serieId" placeholder="ID da série">
+    <input id="ordem" placeholder="Ordem">
+    <input id="capaEp" placeholder="Capa episódio">
+    <input id="video" placeholder="Link vídeo">
+    <button onclick="addEp()">Adicionar Episódio</button>
+  `;
+};
+
 window.addSerie = async () => {
   await addDoc(collection(db,"series"), {
     nome: nomeSerie.value,
     capa: capaSerie.value
   });
-
-  alert("Série adicionada!");
-  home();
+  alert("Série adicionada");
 };
 
-// 🔥 ADD EP
 window.addEp = async () => {
   await addDoc(collection(db,"episodios"), {
     nome: nomeEp.value,
@@ -122,11 +279,10 @@ window.addEp = async () => {
     capa: capaEp.value,
     video: video.value
   });
-
-  alert("Episódio adicionado!");
+  alert("Episódio adicionado");
 };
 
-// INIT
+/* START */
 home();
 
 </script>
