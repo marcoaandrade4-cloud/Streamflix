@@ -3,35 +3,149 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Stream Flix</title>
+<title>Chat Noir Brasil</title>
 
 <style>
 body{margin:0;background:#000;color:#fff;font-family:Arial}
-header{background:#0a0;padding:10px;text-align:center}
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:10px}
-.card{background:#111;padding:10px;border-radius:10px}
-.card img{width:100%;border-radius:10px}
-button{background:#0f0;border:none;padding:8px;border-radius:8px}
+
+/* TOPO */
+header{
+  background:#0f0;
+  padding:10px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+header span{font-weight:bold;color:#000}
+
+/* BANNER */
+.banner{
+  background:#111;
+  margin:10px;
+  padding:15px;
+  border-radius:10px;
+  text-align:center;
+}
+.banner button{background:#0f0;border:none;padding:10px;border-radius:10px}
+
+/* GRID */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:12px;
+  padding:10px;
+}
+.card{
+  background:#111;
+  border-radius:12px;
+  overflow:hidden;
+}
+.card img{
+  width:100%;
+  height:220px;
+  object-fit:cover;
+}
+.card p{padding:5px}
+
+/* LISTA EP */
+.ep{
+  display:flex;
+  background:#111;
+  margin:10px;
+  border-radius:10px;
+  overflow:hidden;
+}
+.ep img{width:120px}
+.ep div{padding:10px}
+
+/* PLAYER */
+video{width:100%}
+
+/* RODAPÉ */
+footer{
+  background:linear-gradient(#000,#0f0);
+  text-align:center;
+  padding:20px;
+}
+
+/* ADMIN */
+#admin{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#111;
+  padding:10px;
+  display:none;
+}
+input,select{
+  width:100%;
+  margin:5px 0;
+  padding:8px;
+}
+button{cursor:pointer}
 .hidden{display:none}
 </style>
 </head>
 
 <body>
 
-<header>Stream Flix</header>
+<header>
+  <span>🐾 Chat Noir Brasil</span>
+  <button onclick="loginADM()">ADM</button>
+</header>
 
+<div class="banner">
+  <h3>Novo episódio!</h3>
+  <button onclick="abrirPlayer(0,0)">▶ Assistir</button>
+</div>
+
+<!-- HOME -->
 <div id="home">
+  <h3 style="text-align:center">Temporadas</h3>
   <div class="grid" id="grid"></div>
 </div>
 
+<!-- LISTA -->
+<div id="lista" class="hidden"></div>
+
+<!-- PLAYER -->
 <div id="player" class="hidden">
-  <button onclick="voltar()">Voltar</button>
+  <button onclick="voltar()">⬅ Voltar</button>
   <h2 id="titulo"></h2>
-  <video id="video" controls width="100%"></video>
+  <div id="idiomas"></div>
+  <video id="video" controls></video>
 </div>
 
+<!-- ADMIN -->
+<div id="admin">
+  <h3>Modo ADM</h3>
+
+  <input id="nomeSerie" placeholder="Nome da série">
+  <input id="imgSerie" placeholder="Imagem URL">
+  <button onclick="criarSerie()">Criar Série</button>
+
+  <hr>
+
+  <select id="serieSel"></select>
+  <input id="nomeEp" placeholder="Nome episódio">
+
+  <input id="idiomaNome" placeholder="Idioma">
+  <input id="idiomaLink" placeholder="Link vídeo">
+  <button onclick="addIdioma()">+ idioma</button>
+
+  <ul id="listaIdiomas"></ul>
+
+  <button onclick="salvarEp()">Salvar episódio</button>
+</div>
+
+<footer>
+  <h2>Chat Noir Brasil</h2>
+  <p>Site feito por fãs</p>
+</footer>
+
 <script>
-let db = {
+let db = JSON.parse(localStorage.getItem("db")) || {
   series:[
     {
       nome:"1ª Temporada",
@@ -39,38 +153,130 @@ let db = {
       eps:[
         {
           nome:"Episódio 1",
-          video:"https://www.w3schools.com/html/mov_bbb.mp4"
+          idiomas:[
+            {nome:"BR",link:"https://www.w3schools.com/html/mov_bbb.mp4"}
+          ]
         }
       ]
     }
   ]
 };
 
-function render(){
-  const grid = document.getElementById("grid");
-  grid.innerHTML = "";
+let serieAtual=0;
+let idiomasTemp=[];
 
+/* HOME */
+function render(){
+  let grid=document.getElementById("grid");
+  grid.innerHTML="";
   db.series.forEach((s,i)=>{
-    grid.innerHTML += `
-      <div class="card" onclick="abrir(${i})">
-        <img src="${s.img}">
-        <p>${s.nome}</p>
-      </div>
-    `;
+    grid.innerHTML+=`
+    <div class="card" onclick="abrirLista(${i})">
+      <img src="${s.img}" onerror="this.src='https://via.placeholder.com/300x400'">
+      <p>${s.nome}</p>
+    </div>`;
   });
 }
 
-function abrir(i){
+/* LISTA */
+function abrirLista(i){
+  serieAtual=i;
   document.getElementById("home").classList.add("hidden");
+  let lista=document.getElementById("lista");
+  lista.classList.remove("hidden");
+  lista.innerHTML=`<button onclick="voltar()">⬅</button><h2>${db.series[i].nome}</h2>`;
+
+  db.series[i].eps.forEach((ep,index)=>{
+    lista.innerHTML+=`
+    <div class="ep">
+      <img src="${db.series[i].img}">
+      <div>
+        <h4>${ep.nome}</h4>
+        <button onclick="abrirPlayer(${i},${index})">Assistir</button>
+        <button onclick="removerEp(${index})">❌</button>
+      </div>
+    </div>`;
+  });
+}
+
+/* PLAYER */
+function abrirPlayer(s,e){
+  document.getElementById("home").classList.add("hidden");
+  document.getElementById("lista").classList.add("hidden");
   document.getElementById("player").classList.remove("hidden");
 
-  const ep = db.series[i].eps[0];
-  document.getElementById("titulo").innerText = ep.nome;
-  document.getElementById("video").src = ep.video;
+  let ep=db.series[s].eps[e];
+  document.getElementById("titulo").innerText=ep.nome;
+
+  let div=document.getElementById("idiomas");
+  div.innerHTML="";
+  ep.idiomas.forEach(i=>{
+    div.innerHTML+=`<button onclick="trocar('${i.link}')">${i.nome}</button>`;
+  });
+
+  trocar(ep.idiomas[0].link);
+}
+
+function trocar(l){
+  document.getElementById("video").src=l;
 }
 
 function voltar(){
   location.reload();
+}
+
+/* ADM */
+function loginADM(){
+  let s=prompt("Senha:");
+  if(s==="1234"){
+    document.getElementById("admin").style.display="block";
+    atualizarSelect();
+  }
+}
+
+function criarSerie(){
+  db.series.push({
+    nome:document.getElementById("nomeSerie").value,
+    img:document.getElementById("imgSerie").value,
+    eps:[]
+  });
+  salvar(); render();
+}
+
+function addIdioma(){
+  idiomasTemp.push({
+    nome:document.getElementById("idiomaNome").value,
+    link:document.getElementById("idiomaLink").value
+  });
+  document.getElementById("listaIdiomas").innerHTML+=`<li>${idiomasTemp.slice(-1)[0].nome}</li>`;
+}
+
+function salvarEp(){
+  let i=document.getElementById("serieSel").value;
+  db.series[i].eps.push({
+    nome:document.getElementById("nomeEp").value,
+    idiomas:idiomasTemp
+  });
+  idiomasTemp=[];
+  salvar();
+}
+
+function removerEp(i){
+  db.series[serieAtual].eps.splice(i,1);
+  salvar();
+  abrirLista(serieAtual);
+}
+
+function atualizarSelect(){
+  let sel=document.getElementById("serieSel");
+  sel.innerHTML="";
+  db.series.forEach((s,i)=>{
+    sel.innerHTML+=`<option value="${i}">${s.nome}</option>`;
+  });
+}
+
+function salvar(){
+  localStorage.setItem("db",JSON.stringify(db));
 }
 
 render();
