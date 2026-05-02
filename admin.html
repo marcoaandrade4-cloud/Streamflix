@@ -16,42 +16,27 @@
 
 <h2>Painel ADM</h2>
 
-<!-- CRIAR -->
 <input id="nomeSerie" placeholder="Nome">
-<input id="capaSerie" placeholder="Capa">
-<input id="sinopseSerie" placeholder="Sinopse">
-<input id="anoSerie" placeholder="Ano">
-
-<select id="tipo">
-  <option value="serie">Série</option>
-  <option value="filme">Filme</option>
-</select>
-
-<button onclick="criarSerie()">Criar</button>
+<input id="capaSerie" placeholder="Capa URL">
+<button onclick="criarSerie()">Criar Série</button>
 
 <hr>
 
-<select id="listaSeries" onchange="mostrarConteudo()"></select>
-
+<select id="listaSeries"></select>
 <button onclick="addTemp()">+ Temporada</button>
 
-<div id="temps"></div>
-
 <hr>
 
-<h3>Novo Episódio / Filme</h3>
-
 <input id="tituloEpADM" placeholder="Título">
-<input id="tempNum" placeholder="Temporada (0,1)">
-<input id="capaEpADM" placeholder="Capa episódio">
+<input id="tempNum" placeholder="Temporada (0,1,2)">
 <input id="lang" placeholder="Idioma">
 <input id="link" placeholder="Link">
 
-<button onclick="addIdioma()">+ Idioma</button>
+<label>
+<input type="checkbox" id="novoEp"> Novo episódio
+</label>
 
-<label><input type="checkbox" id="novoEp"> Novo episódio</label>
-
-<button onclick="addEp()">Salvar Episódio</button>
+<button onclick="addEp()">Adicionar Episódio</button>
 
 </div>
 
