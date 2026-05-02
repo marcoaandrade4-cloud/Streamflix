@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html>
 <head>
 <meta charset="UTF-8">
 <title>StreamFlix</title>
@@ -9,18 +9,17 @@
 
 <header class="topo">
   <div class="logo">🐾 StreamFlix</div>
-  <div class="user" onclick="login()">👤</div>
+  <div class="user" onclick="abrirADM()">👤</div>
 </header>
 
 <section class="novo">
   <h2>Novo episódio!</h2>
-  <p id="epNome">Carregando...</p>
+  <p id="epNome"></p>
   <a id="btnAssistir" class="btn">▶ Assistir</a>
 </section>
 
-<h2 class="titulo">Bem-vindo ao <span>StreamFlix</span></h2>
-
-<div id="gridTemporadas" class="grid"></div>
+<h2 class="titulo">Catálogo</h2>
+<div id="grid" class="grid"></div>
 
 <script src="script.js"></script>
 </body>
