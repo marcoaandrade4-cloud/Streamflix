@@ -7,10 +7,25 @@
 </head>
 <body>
 
-<h2 style="padding:15px;">Painel ADM</h2>
+<h2>Login ADM</h2>
+<input id="user">
+<input id="pass" type="password">
+<button onclick="login()">Entrar</button>
 
+<div id="painel" style="display:none">
+
+<h3>Criar</h3>
 <input id="nome" placeholder="Nome">
-<input id="capa" placeholder="Capa URL">
+<input id="img" placeholder="Imagem">
+<input id="ano" placeholder="Ano">
+<input id="sinopse" placeholder="Sinopse">
+<input id="categoria" placeholder="Categoria">
+
+<select id="tipo">
+<option value="serie">Série</option>
+<option value="filme">Filme</option>
+</select>
+
 <button onclick="criar()">Criar</button>
 
 <hr>
@@ -18,16 +33,19 @@
 <select id="lista"></select>
 <button onclick="addTemp()">+ Temporada</button>
 
-<hr>
+<h3>Episódio</h3>
+<input id="epTitulo">
+<input id="temp">
+<input id="lang">
+<input id="link">
 
-<input id="tituloEp" placeholder="Título">
-<input id="temp" placeholder="Temporada (0)">
-<input id="lang" placeholder="Idioma">
-<input id="link" placeholder="Link">
+<button onclick="addIdioma()">+ idioma</button>
 
 <label><input type="checkbox" id="novo"> Novo episódio</label>
 
-<button onclick="addEp()">Salvar episódio</button>
+<button onclick="salvarEp()">Salvar</button>
+
+</div>
 
 <script src="script.js"></script>
 </body>
