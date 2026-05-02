@@ -19,8 +19,6 @@ function criar(){
   db.push({
     nome:nome.value,
     img:img.value,
-    ano:ano.value,
-    sinopse:sinopse.value,
     categoria:categoria.value,
     tipo:tipo.value,
     temporadas:[{episodios:[]}]
@@ -46,20 +44,20 @@ function addTemp(){
 
 /* IDIOMA */
 function addIdioma(){
-  tempLinks[lang.value] = link.value;
+  tempLinks[idioma.value] = link.value;
 }
 
 /* EP */
 function salvarEp(){
-  let s = db[lista.value];
-  let t = temp.value;
+  let s=db[lista.value];
+  let t=temp.value;
 
   if(!s.temporadas[t]) return alert("Temporada inválida");
 
   db.forEach(s=>s.temporadas.forEach(t=>t.episodios.forEach(ep=>ep.novo=false)));
 
   s.temporadas[t].episodios.push({
-    titulo:epTitulo.value,
+    titulo:tituloEp.value,
     links:{...tempLinks},
     novo:novo.checked
   });
@@ -70,29 +68,19 @@ function salvarEp(){
 
 /* HOME */
 function render(){
-  let conteudo = document.getElementById("conteudo");
+  let conteudo=document.getElementById("conteudo");
   if(!conteudo) return;
 
   conteudo.innerHTML="";
 
-  let cats=[...new Set(db.map(s=>s.categoria||"Outros"))];
-
-  cats.forEach(cat=>{
-    conteudo.innerHTML+=`<h2>${cat}</h2><div class="grid">`;
-
-    db.filter(s=> (s.categoria||"Outros")===cat)
-    .forEach((s,i)=>{
-      conteudo.innerHTML+=`
-      <div class="card" onclick="abrirSerie(${i})">
-        <img src="${s.img}">
-        <p>${s.nome}</p>
-      </div>`;
-    });
-
-    conteudo.innerHTML+="</div>";
+  db.forEach((s,i)=>{
+    conteudo.innerHTML+=`
+    <div class="card" onclick="abrirSerie(${i})">
+      <img src="${s.img}">
+      <p>${s.nome}</p>
+    </div>`;
   });
 
-  // NOVO EP (SIMPLES)
   let destaque;
   db.forEach(s=>s.temporadas.forEach(t=>t.episodios.forEach(ep=>{
     if(ep.novo) destaque=ep;
@@ -101,7 +89,7 @@ function render(){
   if(destaque){
     novoEp.innerHTML = `
       <button onclick='abrirPlayer(${JSON.stringify(destaque)})'>
-        ${destaque.titulo}
+        ▶ ${destaque.titulo}
       </button>
     `;
   }
@@ -109,17 +97,13 @@ function render(){
 
 /* BUSCA */
 function buscar(){
-  let v = document.getElementById("busca").value.toLowerCase();
+  let v=busca.value.toLowerCase();
   conteudo.innerHTML="";
 
   db.filter(s=>s.nome.toLowerCase().includes(v))
   .forEach((s,i)=>{
     conteudo.innerHTML+=`
-      <div class="card" onclick="abrirSerie(${i})">
-        <img src="${s.img}">
-        <p>${s.nome}</p>
-      </div>
-    `;
+    <div onclick="abrirSerie(${i})">${s.nome}</div>`;
   });
 }
 
@@ -134,9 +118,7 @@ function carregarSerie(){
   if(i==null) return;
 
   let s=db[i];
-
   titulo.innerText=s.nome;
-  info.innerText=(s.sinopse||"")+" ("+(s.ano||"")+")";
 
   s.temporadas.forEach((t,ti)=>{
     let b=document.createElement("button");
@@ -178,17 +160,7 @@ function carregarPlayer(){
     b.innerText=l;
 
     b.onclick=()=>{
-      let url=ep.links[l];
-
-      if(url.includes("youtube")){
-        let id=url.includes("v=")?url.split("v=")[1]:url.split("/").pop();
-        player.src="https://www.youtube.com/embed/"+id;
-      }else if(url.includes("drive")){
-        let id=url.split("/d/")[1]?.split("/")[0];
-        player.src="https://drive.google.com/file/d/"+id+"/preview";
-      }else{
-        player.src=url;
-      }
+      player.src=ep.links[l];
     };
 
     idiomas.appendChild(b);
