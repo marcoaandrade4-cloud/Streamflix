@@ -1,18 +1,20 @@
 body {
   margin: 0;
-  background: #000;
-  color: #fff;
+  background: #0b0b0b;
+  color: white;
   font-family: Arial;
 }
 
 header {
   padding: 15px;
+  font-size: 20px;
+  font-weight: bold;
 }
 
-.grid {
+#grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 15px;
+  gap: 12px;
   padding: 10px;
 }
 
@@ -20,6 +22,7 @@ header {
   background: #111;
   border-radius: 10px;
   overflow: hidden;
+  cursor: pointer;
 }
 
 .card img {
@@ -29,4 +32,21 @@ header {
 .card h3 {
   padding: 10px;
   font-size: 14px;
+}
+
+.episodio {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  border-bottom: 1px solid #222;
+}
+
+.episodio img {
+  width: 120px;
+  border-radius: 8px;
+}
+
+.player iframe {
+  width: 100%;
+  height: 220px;
 }
