@@ -92,13 +92,18 @@ function render(){
     conteudo.innerHTML+="</div>";
   });
 
+  // NOVO EP (SIMPLES)
   let destaque;
   db.forEach(s=>s.temporadas.forEach(t=>t.episodios.forEach(ep=>{
     if(ep.novo) destaque=ep;
   })));
 
   if(destaque){
-    novoEp.innerHTML=`<button onclick='abrirPlayer(${JSON.stringify(destaque)})'>${destaque.titulo}</button>`;
+    novoEp.innerHTML = `
+      <button onclick='abrirPlayer(${JSON.stringify(destaque)})'>
+        ${destaque.titulo}
+      </button>
+    `;
   }
 }
 
@@ -113,7 +118,8 @@ function buscar(){
       <div class="card" onclick="abrirSerie(${i})">
         <img src="${s.img}">
         <p>${s.nome}</p>
-      </div>`;
+      </div>
+    `;
   });
 }
 
