@@ -7,19 +7,46 @@ function salvarDB(){
 /* ===== HOME ===== */
 
 if(document.getElementById("catalogo")){
-  let cat = document.getElementById("catalogo");
 
-  db.forEach((item,i)=>{
-    cat.innerHTML += `
-    <div class="card" onclick="abrirSerie(${i})">
-      <img src="${item.capa}">
-      <p>${item.titulo}</p>
-    </div>`;
-  });
+  if(db.length === 0){
+    db.push({
+      titulo:"Miraculous",
+      capa:"https://i.imgur.com/3ZQ3ZQm.jpg",
+      temporadas:[]
+    });
+    salvarDB();
+  }
+
+  render();
+
+  function render(){
+    let cat = document.getElementById("catalogo");
+    cat.innerHTML = "";
+
+    db.forEach((item,i)=>{
+      cat.innerHTML += `
+      <div class="card" onclick="abrirSerie(${i})">
+        <img src="${item.capa}">
+        <p>${item.titulo}</p>
+      </div>`;
+    });
+  }
+
+  document.getElementById("busca").oninput = function(){
+    let v = this.value.toLowerCase();
+
+    document.querySelectorAll(".card").forEach(c=>{
+      c.style.display = c.innerText.toLowerCase().includes(v) ? "block":"none";
+    });
+  }
 }
 
 function abrirSerie(i){
   location.href = "serie.html?id="+i;
+}
+
+function irAdmin(){
+  location.href = "admin.html";
 }
 
 /* ===== SERIE ===== */
@@ -33,21 +60,22 @@ if(location.pathname.includes("serie")){
   let tDiv = document.getElementById("temporadas");
   let eDiv = document.getElementById("episodios");
 
-  serie.temporadas?.forEach((t,ti)=>{
-    let btn = document.createElement("button");
-    btn.innerText = "Temporada "+(ti+1);
+  serie.temporadas.forEach((t,ti)=>{
+    let b = document.createElement("button");
+    b.innerText = "Temporada "+(ti+1);
 
-    btn.onclick = ()=>{
+    b.onclick = ()=>{
       eDiv.innerHTML = "";
+
       t.episodios.forEach((ep,ei)=>{
         eDiv.innerHTML += `
         <div onclick="abrirPlayer(${id},${ti},${ei})">
-        Episódio ${ei+1}
+          Episódio ${ei+1}
         </div>`;
       });
     }
 
-    tDiv.appendChild(btn);
+    tDiv.appendChild(b);
   });
 }
 
@@ -59,104 +87,87 @@ function abrirPlayer(s,t,e){
 
 if(location.pathname.includes("player")){
   let p = new URLSearchParams(location.search);
-  let s = p.get("s"), t=p.get("t"), e=p.get("e");
 
-  let ep = db[s].temporadas[t].episodios[e];
+  let ep = db[p.get("s")].temporadas[p.get("t")].episodios[p.get("e")];
 
-  document.getElementById("nomeEp").innerText = ep.nome;
+  document.getElementById("ep").innerText = ep.nome;
 
-  let select = document.getElementById("idioma");
+  let sel = document.getElementById("idioma");
 
-  for(let lang in ep.links){
-    let op = document.createElement("option");
-    op.value = ep.links[lang];
-    op.innerText = lang;
-    select.appendChild(op);
+  for(let l in ep.links){
+    sel.innerHTML += `<option value="${ep.links[l]}">${l}</option>`;
   }
 
-  select.onchange = ()=>{
-    document.getElementById("player").src = select.value;
+  sel.onchange = ()=>{
+    document.getElementById("player").src = sel.value;
   }
 
-  select.onchange();
+  sel.onchange();
 }
 
 /* ===== ADMIN ===== */
 
-function abrirAdmin(){
-  location.href = "admin.html";
-}
-
-function logar(){
-  if(document.getElementById("senha").value === "1234"){
-    document.getElementById("login").style.display="none";
-    document.getElementById("painel").style.display="block";
+function login(){
+  if(senha.value === "1234"){
+    login.style.display="none";
+    painel.style.display="block";
     carregarLista();
   }
 }
 
-function salvar(){
-  let item = {
+function salvarSerie(){
+  db.push({
     titulo:titulo.value,
     capa:capa.value,
-    tipo:tipo.value,
-    sinopse:sinopse.value,
-    ano:ano.value,
     temporadas:[]
-  };
+  });
 
-  db.push(item);
   salvarDB();
   alert("Salvo!");
 }
 
 function carregarLista(){
-  let sel = document.getElementById("lista");
-  sel.innerHTML="";
+  lista.innerHTML="";
 
   db.forEach((i,index)=>{
-    sel.innerHTML += `<option value="${index}">${i.titulo}</option>`;
+    lista.innerHTML += `<option value="${index}">${i.titulo}</option>`;
   });
 }
 
-let editando = null;
+let atual = null;
 
-function carregar(){
-  editando = lista.value;
-  let i = db[editando];
-
-  titulo.value=i.titulo;
-  capa.value=i.capa;
+function editar(){
+  atual = lista.value;
+  renderTemps();
 }
 
 function addTemp(){
-  let t = {episodios:[]};
-  db[editando].temporadas.push(t);
+  db[atual].temporadas.push({episodios:[]});
   renderTemps();
 }
 
 function renderTemps(){
-  let div = document.getElementById("temps");
-  div.innerHTML="";
+  temps.innerHTML="";
 
-  db[editando].temporadas.forEach((t,ti)=>{
-    div.innerHTML += `
+  db[atual].temporadas.forEach((t,ti)=>{
+    temps.innerHTML += `
     <div>
       <h4>Temp ${ti+1}</h4>
-      <button onclick="addEp(${ti})">+ Ep</button>
+      <button onclick="addEp(${ti})">Novo episódio</button>
     </div>`;
   });
 }
 
 function addEp(ti){
-  db[editando].temporadas[ti].episodios.push({
+  db[atual].temporadas[ti].episodios.push({
     nome:"Novo episódio",
-    links:{ "PT-BR":"" }
+    links:{"PT-BR":""}
   });
+
   renderTemps();
 }
 
 function salvarTudo(){
   salvarDB();
   alert("Atualizado!");
-  }
+}
