@@ -1,67 +1,43 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Série</title>
-<link rel="stylesheet" href="style.css">
-</head>
-<body>
-
-<h2 id="titulo"></h2>
-
-<div id="temporadas"></div>
-<div id="episodios"></div>
-
 <script>
 let serie = JSON.parse(localStorage.getItem("serie"));
 
 if(!serie){
-  document.body.innerHTML = "<h2>Erro ao carregar série</h2>";
+  document.body.innerHTML = "<h2>Erro</h2>";
 }else{
 
-  document.getElementById("titulo").innerText = serie.nome || "Sem nome";
-
-  const temporadasDiv = document.getElementById("temporadas");
-  const episodiosDiv = document.getElementById("episodios");
+  titulo.innerText = serie.nome;
 
   let temporadas = serie.temporadas || [];
 
-  if(temporadas.length === 0){
-    temporadasDiv.innerHTML = "<p>Sem temporadas</p>";
-  }
-
-  temporadas.forEach((temp, i)=>{
+  temporadas.forEach((temp,i)=>{
     let btn = document.createElement("button");
     btn.innerText = "Temporada " + (i+1);
 
     btn.onclick = ()=>{
-      episodiosDiv.innerHTML = "";
+      episodios.innerHTML="";
 
       let eps = temp.episodios || [];
 
       if(eps.length === 0){
-        episodiosDiv.innerHTML = "<p>Sem episódios</p>";
+        episodios.innerHTML = "<p>Sem episódios</p>";
         return;
       }
 
       eps.forEach(ep=>{
-        let e = document.createElement("button");
-        e.innerText = ep.titulo || "Sem título";
+        let b = document.createElement("button");
+        b.innerText = ep.titulo;
 
-        e.onclick = ()=>{
+        b.onclick = ()=>{
           localStorage.setItem("ep", JSON.stringify(ep));
-          window.location.href = "player.html";
+          location.href="player.html";
         };
 
-        episodiosDiv.appendChild(e);
+        episodios.appendChild(b);
       });
     };
 
-    temporadasDiv.appendChild(btn);
+    temporadas.appendChild(btn);
   });
 
 }
 </script>
-
-</body>
-</html>
