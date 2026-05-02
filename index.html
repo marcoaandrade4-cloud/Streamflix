@@ -3,218 +3,74 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chat Noir Brasil</title>
+<title>Stream Flix</title>
 
 <style>
 body{margin:0;background:#000;color:#fff;font-family:Arial}
-header{background:#0a0;padding:10px;display:flex;justify-content:space-between}
-.banner{background:#111;margin:10px;padding:15px;border-radius:10px;text-align:center}
-button{background:#0f0;border:none;padding:8px;border-radius:8px;margin:5px}
+header{background:#0a0;padding:10px;text-align:center}
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:10px}
-.card{background:#111;border-radius:10px;padding:10px}
+.card{background:#111;padding:10px;border-radius:10px}
 .card img{width:100%;border-radius:10px}
+button{background:#0f0;border:none;padding:8px;border-radius:8px}
 .hidden{display:none}
-.list{padding:10px}
-.ep{background:#111;margin:10px;border-radius:10px;display:flex}
-.ep img{width:120px}
-footer{background:linear-gradient(#000,#0a0);text-align:center;padding:20px}
-#admin{background:#111;padding:10px;margin:10px;border-radius:10px}
-video{width:100%}
 </style>
 </head>
 
 <body>
 
-<header>
-  <b>🐾 Chat Noir Brasil</b>
-  <button onclick="abrirADM()">ADM</button>
-</header>
+<header>Stream Flix</header>
 
-<div class="banner">
-  <h3>Novo episódio!</h3>
-  <button onclick="abrirPlayer(0,0)">▶ Assistir</button>
-</div>
-
-<!-- HOME -->
 <div id="home">
-  <h3 style="text-align:center">Temporadas</h3>
   <div class="grid" id="grid"></div>
 </div>
 
-<!-- LISTA -->
-<div id="lista" class="hidden"></div>
-
-<!-- PLAYER -->
 <div id="player" class="hidden">
-  <button onclick="voltar()">⬅ Voltar</button>
-  <h2 id="tituloEp"></h2>
-  <div id="idiomas"></div>
-  <video id="video" controls></video>
+  <button onclick="voltar()">Voltar</button>
+  <h2 id="titulo"></h2>
+  <video id="video" controls width="100%"></video>
 </div>
-
-<!-- ADMIN -->
-<div id="admin" class="hidden">
-  <h3>Modo ADM</h3>
-
-  <input id="nomeSerie" placeholder="Nome da série"><br>
-  <input id="imgSerie" placeholder="Imagem URL"><br>
-  <button onclick="criarSerie()">Criar Série</button>
-
-  <hr>
-
-  <select id="serieSelect"></select><br>
-  <input id="nomeEp" placeholder="Nome episódio"><br>
-
-  <input id="idiomaNome" placeholder="Idioma (BR)">
-  <input id="idiomaLink" placeholder="Link vídeo">
-  <button onclick="addIdioma()">+</button>
-
-  <ul id="listaIdiomas"></ul>
-
-  <button onclick="salvarEp()">Salvar Episódio</button>
-</div>
-
-<footer>
-  <h2>Chat Noir Brasil</h2>
-  <p>Site de fãs</p>
-</footer>
 
 <script>
-let db = JSON.parse(localStorage.getItem("db")) || {
+let db = {
   series:[
     {
       nome:"1ª Temporada",
-      img:"https://via.placeholder.com/300x400",
+      img:"https://picsum.photos/300/400",
       eps:[
         {
           nome:"Episódio 1",
-          idiomas:[
-            {nome:"BR",link:"https://www.w3schools.com/html/mov_bbb.mp4"}
-          ]
+          video:"https://www.w3schools.com/html/mov_bbb.mp4"
         }
       ]
     }
   ]
 };
 
-let serieAtual=0;
-let epAtual=0;
-let idiomasTemp=[];
-
-/* HOME */
 function render(){
-  const grid=document.getElementById("grid");
-  grid.innerHTML="";
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+
   db.series.forEach((s,i)=>{
-    grid.innerHTML+=`
-    <div class="card" onclick="abrirLista(${i})">
-      <img src="${s.img}" onerror="this.src='https://via.placeholder.com/300x400'">
-      <p>${s.nome}</p>
-    </div>`;
-  });
-}
-
-/* LISTA */
-function abrirLista(i){
-  serieAtual=i;
-  document.getElementById("home").classList.add("hidden");
-  const lista=document.getElementById("lista");
-  lista.classList.remove("hidden");
-  lista.innerHTML=`<button onclick="voltar()">⬅</button><h2>${db.series[i].nome}</h2>`;
-
-  db.series[i].eps.forEach((ep,index)=>{
-    lista.innerHTML+=`
-    <div class="ep">
-      <img src="${db.series[i].img}">
-      <div>
-        <h4>${ep.nome}</h4>
-        <button onclick="abrirPlayer(${i},${index})">Assistir</button>
-        <button onclick="removerEp(${index})">❌</button>
+    grid.innerHTML += `
+      <div class="card" onclick="abrir(${i})">
+        <img src="${s.img}">
+        <p>${s.nome}</p>
       </div>
-    </div>`;
+    `;
   });
 }
 
-/* PLAYER */
-function abrirPlayer(s,e){
-  serieAtual=s; epAtual=e;
+function abrir(i){
   document.getElementById("home").classList.add("hidden");
-  document.getElementById("lista").classList.add("hidden");
   document.getElementById("player").classList.remove("hidden");
 
-  const ep=db.series[s].eps[e];
-  document.getElementById("tituloEp").innerText=ep.nome;
-
-  const div=document.getElementById("idiomas");
-  div.innerHTML="";
-  ep.idiomas.forEach(i=>{
-    div.innerHTML+=`<button onclick="trocar('${i.link}')">${i.nome}</button>`;
-  });
-
-  trocar(ep.idiomas[0].link);
-}
-
-function trocar(l){
-  document.getElementById("video").src=l;
+  const ep = db.series[i].eps[0];
+  document.getElementById("titulo").innerText = ep.nome;
+  document.getElementById("video").src = ep.video;
 }
 
 function voltar(){
   location.reload();
-}
-
-/* ADM */
-function abrirADM(){
-  const senha=prompt("Senha:");
-  if(senha!=="1234")return;
-
-  document.getElementById("admin").classList.toggle("hidden");
-  atualizarSelect();
-}
-
-function criarSerie(){
-  db.series.push({
-    nome:document.getElementById("nomeSerie").value,
-    img:document.getElementById("imgSerie").value,
-    eps:[]
-  });
-  salvar();
-  render();
-}
-
-function addIdioma(){
-  idiomasTemp.push({
-    nome:document.getElementById("idiomaNome").value,
-    link:document.getElementById("idiomaLink").value
-  });
-  document.getElementById("listaIdiomas").innerHTML+=`<li>${idiomasTemp.slice(-1)[0].nome}</li>`;
-}
-
-function salvarEp(){
-  const i=document.getElementById("serieSelect").value;
-  db.series[i].eps.push({
-    nome:document.getElementById("nomeEp").value,
-    idiomas:idiomasTemp
-  });
-  idiomasTemp=[];
-  salvar();
-}
-
-function removerEp(i){
-  db.series[serieAtual].eps.splice(i,1);
-  salvar();
-  abrirLista(serieAtual);
-}
-
-function atualizarSelect(){
-  const sel=document.getElementById("serieSelect");
-  sel.innerHTML="";
-  db.series.forEach((s,i)=>{
-    sel.innerHTML+=`<option value="${i}">${s.nome}</option>`;
-  });
-}
-
-function salvar(){
-  localStorage.setItem("db",JSON.stringify(db));
 }
 
 render();
