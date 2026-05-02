@@ -1,49 +1,30 @@
-let catalogo = document.getElementById("catalogo");
+const catalogo = document.getElementById("catalogo");
 
-function irADM(){
-  location.href = "adm.html";
-}
+const temporadas = [
+  {
+    nome: "1ª Temporada",
+    imagem: "img/t1.jpg",
+    link: "temporada.html?t=1"
+  },
+  {
+    nome: "2ª Temporada",
+    imagem: "img/t2.jpg",
+    link: "temporada.html?t=2"
+  },
+  {
+    nome: "3ª Temporada",
+    imagem: "img/t3.jpg",
+    link: "temporada.html?t=3"
+  }
+];
 
-function abrirSerie(serie){
-  localStorage.setItem("serie", JSON.stringify(serie));
-  location.href = "serie.html";
-}
-
-function carregar(){
-
-  db.collection("conteudo").get().then(snap=>{
-
-    catalogo.innerHTML = "";
-
-    if(snap.empty){
-      catalogo.innerHTML = "<p style='color:white'>Nenhum conteúdo ainda</p>";
-      return;
-    }
-
-    snap.forEach(doc=>{
-
-      let data = doc.data();
-
-      let card = document.createElement("div");
-
-      card.innerHTML = `
-        <img src="${data.img || ''}" width="150">
-        <h3>${data.nome || 'Sem nome'}</h3>
-      `;
-
-      card.onclick = ()=>{
-        abrirSerie(data);
-      };
-
-      catalogo.appendChild(card);
-
-    });
-
-  }).catch(err=>{
-    console.error(err);
-    catalogo.innerHTML = "<p style='color:red'>Erro ao carregar</p>";
-  });
-
-}
-
-carregar();
+temporadas.forEach(t => {
+  catalogo.innerHTML += `
+    <div class="card">
+      <a href="${t.link}">
+        <img src="${t.imagem}">
+        <h3>${t.nome}</h3>
+      </a>
+    </div>
+  `;
+});
