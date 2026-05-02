@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Player</title>
+
+<style>
+body{background:#000;color:#fff;text-align:center}
+
+iframe{
+ width:90%;
+ height:300px;
+ border-radius:15px;
+}
+
+button{
+ margin:5px;
+ padding:10px;
+ border:none;
+ border-radius:10px;
+}
+</style>
+</head>
+
+<body>
+
+<h2 id="titulo"></h2>
+
+<div id="idiomas"></div>
+
+<div id="player"></div>
+
+<script>
+const ep = JSON.parse(localStorage.getItem("ep"));
+
+titulo.innerText = ep.title;
+
+ep.languages.forEach(l=>{
+ const btn=document.createElement("button");
+ btn.innerText=l.lang;
+
+ btn.onclick=()=>{
+  player.innerHTML=`
+   <iframe src="https://www.youtube.com/embed/${l.url}" allowfullscreen></iframe>
+  `;
+ };
+
+ idiomas.appendChild(btn);
+});
+</script>
+
+</body>
+</html>
