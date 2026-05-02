@@ -8,20 +8,31 @@
 <body>
 
 <div id="loginBox">
-  <h2>Login ADM</h2>
-  <input type="password" id="senha" placeholder="Senha">
-  <button onclick="entrar()">Entrar</button>
+  <input id="senha" type="password" placeholder="Senha">
+  <button onclick="login()">Entrar</button>
 </div>
 
-<div id="painel" style="display:none;">
-  <h2>Painel ADM</h2>
+<div id="painel" style="display:none">
 
-  <input id="titulo" placeholder="Título">
-  <input id="capa" placeholder="URL da capa">
-  <input id="videoUrl" placeholder="Link do vídeo">
-  <input id="temporada" placeholder="Temporada">
+<h3>Criar Série</h3>
+<input id="nomeSerie" placeholder="Nome">
+<input id="capaSerie" placeholder="Capa URL">
+<button onclick="criarSerie()">Criar</button>
 
-  <button onclick="salvar()">Salvar</button>
+<h3>Selecionar Série</h3>
+<select id="listaSeries" onchange="carregarSerie()"></select>
+
+<h3>Temporadas</h3>
+<button onclick="addTemp()">+ Temporada</button>
+
+<h3>Episódios</h3>
+<input id="tituloEpADM" placeholder="Título">
+<input id="tempNum" placeholder="Temporada (0,1,2)">
+<input id="lang" placeholder="Idioma">
+<input id="link" placeholder="Link">
+<label><input type="checkbox" id="novoEp"> Novo episódio</label>
+<button onclick="addEp()">Adicionar Episódio</button>
+
 </div>
 
 <script src="script.js"></script>
