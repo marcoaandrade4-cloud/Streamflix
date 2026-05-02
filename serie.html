@@ -10,37 +10,33 @@ body{background:#000;color:#fff;font-family:Arial;margin:0}
 /* HEADER */
 .header{
  padding:15px;
- text-align:center;
  background:#0b0b0b;
  border-bottom:2px solid #00ff66;
+ text-align:center;
 }
 
-/* LISTAS */
+/* LISTA HORIZONTAL */
 .list{
  display:flex;
  overflow-x:auto;
- padding:10px;
  gap:10px;
+ padding:10px;
 }
-
 .item{
  background:#111;
  padding:10px 15px;
  border-radius:10px;
- white-space:nowrap;
  cursor:pointer;
 }
-
-.item.active{
+.item:hover{
  background:#00ff66;
  color:#000;
- font-weight:bold;
 }
 
 /* PLAYER */
 .player{
- margin:15px;
  text-align:center;
+ margin:15px;
 }
 </style>
 </head>
@@ -51,13 +47,13 @@ body{background:#000;color:#fff;font-family:Arial;margin:0}
  <h2 id="title"></h2>
 </div>
 
-<h3 style="padding-left:10px">Temporadas</h3>
+<h3>Temporadas</h3>
 <div class="list" id="temporadas"></div>
 
-<h3 style="padding-left:10px">Episódios</h3>
+<h3>Episódios</h3>
 <div class="list" id="episodios"></div>
 
-<h3 style="padding-left:10px">Idiomas</h3>
+<h3>Idiomas</h3>
 <div class="list" id="idiomas"></div>
 
 <div class="player" id="player"></div>
@@ -66,58 +62,57 @@ body{background:#000;color:#fff;font-family:Arial;margin:0}
 const data = JSON.parse(localStorage.getItem("serie"));
 title.innerText = data.title;
 
-let temporadaAtual=null;
-let episodioAtual=null;
+let temporadaAtual, episodioAtual;
 
 data.seasons.forEach((s,i)=>{
- const div=document.createElement("div");
- div.className="item";
- div.innerText="T"+(i+1);
+ const el=document.createElement("div");
+ el.className="item";
+ el.innerText="T"+(i+1);
 
- div.onclick=()=>{
+ el.onclick=()=>{
   temporadaAtual=s;
-  atualizarEpisodios();
+  mostrarEp();
  };
 
- temporadas.appendChild(div);
+ temporadas.appendChild(el);
 });
 
-function atualizarEpisodios(){
+function mostrarEp(){
  episodios.innerHTML="";
  idiomas.innerHTML="";
  player.innerHTML="";
 
  temporadaAtual.episodes.forEach(ep=>{
-  const div=document.createElement("div");
-  div.className="item";
-  div.innerText=ep.title;
+  const el=document.createElement("div");
+  el.className="item";
+  el.innerText=ep.title;
 
-  div.onclick=()=>{
+  el.onclick=()=>{
    episodioAtual=ep;
-   atualizarIdiomas();
+   mostrarLang();
   };
 
-  episodios.appendChild(div);
+  episodios.appendChild(el);
  });
 }
 
-function atualizarIdiomas(){
+function mostrarLang(){
  idiomas.innerHTML="";
  player.innerHTML="";
 
  episodioAtual.languages.forEach(l=>{
-  const div=document.createElement("div");
-  div.className="item";
-  div.innerText=l.lang;
+  const el=document.createElement("div");
+  el.className="item";
+  el.innerText=l.lang;
 
-  div.onclick=()=>{
+  el.onclick=()=>{
    player.innerHTML=`
    <iframe width="90%" height="400"
    src="https://www.youtube.com/embed/${l.url}"
    allowfullscreen></iframe>`;
   };
 
-  idiomas.appendChild(div);
+  idiomas.appendChild(el);
  });
 }
 </script>
