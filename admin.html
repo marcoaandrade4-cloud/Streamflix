@@ -2,13 +2,14 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Admin</title>
+<title>ADM</title>
 
 <style>
 body{background:#000;color:#fff;font-family:Arial;padding:10px}
-input,textarea{display:block;margin:5px;padding:8px;width:100%}
+input{display:block;margin:5px;padding:8px;width:100%}
 button{padding:8px;margin:5px;background:#00ff66;border:none}
-.box{border:1px solid #333;padding:10px;margin:10px 0}
+#painel{display:none}
+.box{border:1px solid #333;margin:10px;padding:10px}
 </style>
 </head>
 
@@ -16,31 +17,27 @@ button{padding:8px;margin:5px;background:#00ff66;border:none}
 
 <h1>ADM</h1>
 
-<select id="tipo">
-<option value="filme">Filme</option>
-<option value="serie">Série</option>
-</select>
+<div id="login">
+<input id="user" placeholder="Usuário">
+<input id="pass" type="password">
+<button onclick="logar()">Entrar</button>
+</div>
+
+<div id="painel">
 
 <input id="title" placeholder="Título">
 <input id="cover" placeholder="Capa">
-<input id="year" placeholder="Ano">
-<textarea id="desc"></textarea>
 
-<h3>Temporadas</h3>
 <button onclick="addSeason()">+ Temporada</button>
 <div id="seasons"></div>
 
 <button onclick="salvar()">Salvar</button>
 
-<hr>
-<div id="lista"></div>
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
- getFirestore, collection, getDocs,
- addDoc, deleteDoc, doc
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const app = initializeApp({
  apiKey:"AIzaSyBkpOKakidlZ2WVZNBI9oEFHEjs1EqCt78",
@@ -50,18 +47,23 @@ const db = getFirestore(app);
 
 let seasons=[];
 
+window.logar=()=>{
+ if(user.value==="marco" && pass.value==="22510827"){
+  login.style.display="none";
+  painel.style.display="block";
+ }else alert("Login errado");
+};
+
 window.addSeason=()=>{
  seasons.push({episodes:[]});
  render();
 };
 
 window.addEpisode=(i)=>{
- seasons[i].episodes.push({title:"Episódio",languages:[]});
- render();
-};
-
-window.addLang=(i,j)=>{
- seasons[i].episodes[j].languages.push({lang:"PT-BR",url:"",type:"youtube"});
+ seasons[i].episodes.push({
+  title:"Episódio",
+  languages:[{lang:"PT-BR",url:"",type:"youtube"}]
+ });
  render();
 };
 
@@ -69,21 +71,12 @@ function render(){
  seasonsDiv.innerHTML="";
  seasons.forEach((s,i)=>{
   let html=`<div class="box">
-  <h4>Temporada ${i+1}</h4>
+  <h3>Temporada ${i+1}</h3>
   <button onclick="addEpisode(${i})">+ Episódio</button>`;
 
   s.episodes.forEach((ep,j)=>{
-   html+=`<div class="box">
-   <input value="${ep.title}" onchange="seasons[${i}].episodes[${j}].title=this.value">
-   <button onclick="addLang(${i},${j})">+ Idioma</button>`;
-
-   ep.languages.forEach((l,k)=>{
-    html+=`
-    <input value="${l.lang}" onchange="seasons[${i}].episodes[${j}].languages[${k}].lang=this.value">
-    <input value="${l.url}" onchange="seasons[${i}].episodes[${j}].languages[${k}].url=this.value">`;
-   });
-
-   html+=`</div>`;
+   html+=`<input value="${ep.title}" 
+   onchange="seasons[${i}].episodes[${j}].title=this.value">`;
   });
 
   html+=`</div>`;
@@ -96,22 +89,11 @@ window.salvar=async()=>{
   type:"serie",
   title:title.value,
   cover:cover.value,
-  year:year.value,
-  description:desc.value,
   seasons:seasons
  });
 
  alert("Salvo!");
 };
-
-async function carregar(){
- const snap=await getDocs(collection(db,"conteudos"));
- snap.forEach(d=>{
-  lista.innerHTML+=`<div>${d.data().title}</div>`;
- });
-}
-
-carregar();
 </script>
 
 </body>
