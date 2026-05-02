@@ -5,21 +5,51 @@
 <title>STREAMFLIX</title>
 
 <style>
-body{background:#000;color:#fff;font-family:Arial;margin:0}
-header{display:flex;justify-content:space-between;padding:10px;background:#111}
-h1{color:red}
-.grid{display:flex;flex-wrap:wrap;gap:15px;padding:15px}
-.card{width:150px;cursor:pointer}
-.card img{width:100%;border-radius:10px}
-button{background:#0f0;border:none;padding:10px;border-radius:8px;cursor:pointer}
+body{
+  background:#000;
+  color:#fff;
+  font-family:Arial;
+  margin:0;
+}
+
+header{
+  display:flex;
+  justify-content:space-between;
+  padding:10px;
+  background:#111;
+}
+
+.grid{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  padding:10px;
+}
+
+.card{
+  width:140px;
+  cursor:pointer;
+}
+
+.card img{
+  width:100%;
+  border-radius:10px;
+}
+
+button{
+  background:#0f0;
+  border:none;
+  padding:8px;
+  border-radius:8px;
+}
 </style>
 </head>
 
 <body>
 
 <header>
-<h1>STREAMFLIX</h1>
-<button onclick="abrirADM()">ADM</button>
+  <h2>STREAMFLIX</h2>
+  <button onclick="abrirADM()">ADM</button>
 </header>
 
 <div class="grid" id="catalogo"></div>
@@ -27,13 +57,14 @@ button{background:#0f0;border:none;padding:10px;border-radius:8px;cursor:pointer
 <script>
 let catalogo = JSON.parse(localStorage.getItem("catalogo")) || [];
 
-function render(){
+/* MOSTRAR CATÁLOGO */
+function carregar(){
   let div = document.getElementById("catalogo");
-  div.innerHTML="";
+  div.innerHTML = "";
 
   catalogo.forEach((item,i)=>{
     div.innerHTML += `
-      <div class="card" onclick="abrir(${i})">
+      <div class="card" onclick="abrirSerie(${i})">
         <img src="${item.capa}">
         <p>${item.titulo}</p>
       </div>
@@ -41,20 +72,23 @@ function render(){
   });
 }
 
-function abrir(i){
-  window.location.href="serie.html?id="+i;
+/* ABRIR SÉRIE */
+function abrirSerie(i){
+  window.location.href = "serie.html?id=" + i;
 }
 
+/* ADM COM SENHA */
 function abrirADM(){
   let senha = prompt("Senha:");
-  if(senha==="1234"){
-    window.location.href="adm.html";
-  }else{
+
+  if(senha === "1234"){
+    window.location.href = "adm.html";
+  } else {
     alert("Senha errada");
   }
 }
 
-render();
+carregar();
 </script>
 
 </body>
