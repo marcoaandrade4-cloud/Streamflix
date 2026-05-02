@@ -12,6 +12,43 @@
 <div id="temporadas"></div>
 <div id="episodios"></div>
 
-<script src="script.js"></script>
+<script>
+let serie = JSON.parse(localStorage.getItem("serie"));
+
+if(!serie){
+  document.body.innerHTML = "<h2>Erro ao carregar série</h2>";
+}else{
+
+  document.getElementById("titulo").innerText = serie.nome;
+
+  const temporadasDiv = document.getElementById("temporadas");
+  const episodiosDiv = document.getElementById("episodios");
+
+  serie.temporadas.forEach((temp, i)=>{
+    let btn = document.createElement("button");
+    btn.innerText = "Temporada " + (i+1);
+
+    btn.onclick = ()=>{
+      episodiosDiv.innerHTML = "";
+
+      temp.episodios.forEach(ep=>{
+        let e = document.createElement("button");
+        e.innerText = ep.titulo;
+
+        e.onclick = ()=>{
+          localStorage.setItem("ep", JSON.stringify(ep));
+          window.location.href = "player.html";
+        };
+
+        episodiosDiv.appendChild(e);
+      });
+    };
+
+    temporadasDiv.appendChild(btn);
+  });
+
+}
+</script>
+
 </body>
 </html>
