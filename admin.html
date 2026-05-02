@@ -2,12 +2,25 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>ADM</title>
+<title>StreamFlix</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h1 style="padding:20px;">Painel ADM</h1>
+<header class="topo">
+  <div class="logo">🐾 StreamFlix</div>
+  <div class="user" onclick="abrirADM()">👤</div>
+</header>
 
+<section class="novo">
+  <h2>Novo episódio!</h2>
+  <p id="epNome"></p>
+  <a id="btnAssistir" class="btn">▶ Assistir</a>
+</section>
+
+<h2>Catálogo</h2>
+<div id="grid" class="grid"></div>
+
+<script src="script.js"></script>
 </body>
 </html>
