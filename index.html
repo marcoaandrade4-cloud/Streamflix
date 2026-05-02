@@ -6,34 +6,42 @@
 <title>Chat Noir Brasil</title>
 
 <style>
+*{box-sizing:border-box}
 body{margin:0;background:#000;color:#fff;font-family:Arial}
 
 /* TOPO */
 header{
   background:#0f0;
-  padding:10px;
+  color:#000;
+  padding:12px;
   display:flex;
   justify-content:space-between;
   align-items:center;
+  font-weight:bold;
 }
-header span{font-weight:bold;color:#000}
+
+/* MENU */
+.nav button{
+  margin-left:5px;
+  background:#000;
+  color:#0f0;
+}
 
 /* BANNER */
 .banner{
   background:#111;
-  margin:10px;
+  margin:12px;
   padding:15px;
-  border-radius:10px;
+  border-radius:12px;
   text-align:center;
 }
-.banner button{background:#0f0;border:none;padding:10px;border-radius:10px}
 
 /* GRID */
 .grid{
   display:grid;
   grid-template-columns:repeat(2,1fr);
   gap:12px;
-  padding:10px;
+  padding:12px;
 }
 .card{
   background:#111;
@@ -45,21 +53,39 @@ header span{font-weight:bold;color:#000}
   height:220px;
   object-fit:cover;
 }
-.card p{padding:5px}
+.card p{padding:8px}
 
 /* LISTA EP */
 .ep{
   display:flex;
   background:#111;
   margin:10px;
-  border-radius:10px;
+  border-radius:12px;
   overflow:hidden;
 }
-.ep img{width:120px}
-.ep div{padding:10px}
+.ep img{
+  width:120px;
+  object-fit:cover;
+}
+.ep div{
+  padding:10px;
+}
 
 /* PLAYER */
-video{width:100%}
+video{
+  width:100%;
+  margin-top:10px;
+}
+
+/* BOTÕES */
+button{
+  background:#0f0;
+  border:none;
+  padding:8px;
+  border-radius:8px;
+  cursor:pointer;
+  margin:3px;
+}
 
 /* RODAPÉ */
 footer{
@@ -77,13 +103,17 @@ footer{
   background:#111;
   padding:10px;
   display:none;
+  max-height:50%;
+  overflow:auto;
 }
+
 input,select{
   width:100%;
-  margin:5px 0;
   padding:8px;
+  margin:5px 0;
 }
-button{cursor:pointer}
+
+/* UTIL */
 .hidden{display:none}
 </style>
 </head>
@@ -91,12 +121,16 @@ button{cursor:pointer}
 <body>
 
 <header>
-  <span>🐾 Chat Noir Brasil</span>
-  <button onclick="loginADM()">ADM</button>
+  🐾 Chat Noir Brasil
+  <div class="nav">
+    <button onclick="irHome()">🏠</button>
+    <button onclick="loginADM()">⚙️</button>
+  </div>
 </header>
 
 <div class="banner">
   <h3>Novo episódio!</h3>
+  <p>Clique abaixo para assistir</p>
   <button onclick="abrirPlayer(0,0)">▶ Assistir</button>
 </div>
 
@@ -130,7 +164,7 @@ button{cursor:pointer}
   <select id="serieSel"></select>
   <input id="nomeEp" placeholder="Nome episódio">
 
-  <input id="idiomaNome" placeholder="Idioma">
+  <input id="idiomaNome" placeholder="Idioma (BR)">
   <input id="idiomaLink" placeholder="Link vídeo">
   <button onclick="addIdioma()">+ idioma</button>
 
@@ -141,7 +175,7 @@ button{cursor:pointer}
 
 <footer>
   <h2>Chat Noir Brasil</h2>
-  <p>Site feito por fãs</p>
+  <p>Site de fãs</p>
 </footer>
 
 <script>
@@ -154,7 +188,8 @@ let db = JSON.parse(localStorage.getItem("db")) || {
         {
           nome:"Episódio 1",
           idiomas:[
-            {nome:"BR",link:"https://www.w3schools.com/html/mov_bbb.mp4"}
+            {nome:"BR",link:"https://www.w3schools.com/html/mov_bbb.mp4"},
+            {nome:"EN",link:"https://www.w3schools.com/html/movie.mp4"}
           ]
         }
       ]
@@ -167,12 +202,12 @@ let idiomasTemp=[];
 
 /* HOME */
 function render(){
-  let grid=document.getElementById("grid");
+  const grid=document.getElementById("grid");
   grid.innerHTML="";
   db.series.forEach((s,i)=>{
     grid.innerHTML+=`
     <div class="card" onclick="abrirLista(${i})">
-      <img src="${s.img}" onerror="this.src='https://via.placeholder.com/300x400'">
+      <img src="${s.img}" onerror="this.src='https://via.placeholder.com/300x400?text=SEM+IMAGEM'">
       <p>${s.nome}</p>
     </div>`;
   });
@@ -181,7 +216,7 @@ function render(){
 /* LISTA */
 function abrirLista(i){
   serieAtual=i;
-  document.getElementById("home").classList.add("hidden");
+  esconderTudo();
   let lista=document.getElementById("lista");
   lista.classList.remove("hidden");
   lista.innerHTML=`<button onclick="voltar()">⬅</button><h2>${db.series[i].nome}</h2>`;
@@ -201,8 +236,7 @@ function abrirLista(i){
 
 /* PLAYER */
 function abrirPlayer(s,e){
-  document.getElementById("home").classList.add("hidden");
-  document.getElementById("lista").classList.add("hidden");
+  esconderTudo();
   document.getElementById("player").classList.remove("hidden");
 
   let ep=db.series[s].eps[e];
@@ -222,6 +256,10 @@ function trocar(l){
 }
 
 function voltar(){
+  location.reload();
+}
+
+function irHome(){
   location.reload();
 }
 
@@ -279,6 +317,14 @@ function salvar(){
   localStorage.setItem("db",JSON.stringify(db));
 }
 
+/* UTIL */
+function esconderTudo(){
+  document.getElementById("home").classList.add("hidden");
+  document.getElementById("lista").classList.add("hidden");
+  document.getElementById("player").classList.add("hidden");
+}
+
+/* START */
 render();
 </script>
 
