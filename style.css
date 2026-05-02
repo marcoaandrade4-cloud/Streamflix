@@ -1,8 +1,9 @@
 body{background:#000;color:#fff;font-family:Arial;margin:0}
 .topo{display:flex;justify-content:space-between;padding:15px;background:#111}
 .logo{color:#00ff66}
-.user{background:#00ff66;padding:10px;border-radius:10px}
+.user{background:#00ff66;padding:10px;border-radius:10px;cursor:pointer;user-select:none}
+.novo{background:#0b2b1c;margin:15px;padding:20px;border-radius:15px;text-align:center}
+.btn{background:#00ff66;padding:12px 25px;border-radius:20px;color:#000}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:15px;padding:15px}
-.card img{width:100%;border-radius:10px}
-.btn{background:#00ff66;padding:10px;border-radius:10px;color:#000}
+.card img{width:100%;border-radius:15px}
 button{margin:5px;padding:10px;border:none;border-radius:10px;background:#00ff66}
