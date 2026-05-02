@@ -11,7 +11,7 @@ function login(){
   if(user.value==="marco" && pass.value==="22510827"){
     painel.style.display="block";
     atualizarLista();
-  }else alert("erro");
+  }else alert("Senha errada");
 }
 
 /* CRIAR */
@@ -26,10 +26,12 @@ function criar(){
     temporadas:[{episodios:[]}]
   });
   salvar();
+  atualizarLista();
 }
 
 /* LISTA */
 function atualizarLista(){
+  if(!lista) return;
   lista.innerHTML="";
   db.forEach((s,i)=>{
     lista.innerHTML+=`<option value="${i}">${s.nome}</option>`;
@@ -52,6 +54,8 @@ function salvarEp(){
   let s = db[lista.value];
   let t = temp.value;
 
+  if(!s.temporadas[t]) return alert("Temporada inválida");
+
   db.forEach(s=>s.temporadas.forEach(t=>t.episodios.forEach(ep=>ep.novo=false)));
 
   s.temporadas[t].episodios.push({
@@ -66,7 +70,6 @@ function salvarEp(){
 
 /* HOME */
 function render(){
-
   let conteudo = document.getElementById("conteudo");
   if(!conteudo) return;
 
@@ -77,7 +80,7 @@ function render(){
   cats.forEach(cat=>{
     conteudo.innerHTML+=`<h2>${cat}</h2><div class="grid">`;
 
-    db.filter(s=>s.categoria===cat)
+    db.filter(s=> (s.categoria||"Outros")===cat)
     .forEach((s,i)=>{
       conteudo.innerHTML+=`
       <div class="card" onclick="abrirSerie(${i})">
@@ -101,12 +104,16 @@ function render(){
 
 /* BUSCA */
 function buscar(){
-  let v=busca.value.toLowerCase();
+  let v = document.getElementById("busca").value.toLowerCase();
   conteudo.innerHTML="";
 
   db.filter(s=>s.nome.toLowerCase().includes(v))
   .forEach((s,i)=>{
-    conteudo.innerHTML+=`<div onclick="abrirSerie(${i})">${s.nome}</div>`;
+    conteudo.innerHTML+=`
+      <div class="card" onclick="abrirSerie(${i})">
+        <img src="${s.img}">
+        <p>${s.nome}</p>
+      </div>`;
   });
 }
 
@@ -123,7 +130,7 @@ function carregarSerie(){
   let s=db[i];
 
   titulo.innerText=s.nome;
-  info.innerText=s.sinopse+" ("+s.ano+")";
+  info.innerText=(s.sinopse||"")+" ("+(s.ano||"")+")";
 
   s.temporadas.forEach((t,ti)=>{
     let b=document.createElement("button");
@@ -149,6 +156,11 @@ function carregarSerie(){
 }
 
 /* PLAYER */
+function abrirPlayer(ep){
+  localStorage.setItem("ep",JSON.stringify(ep));
+  location.href="player.html";
+}
+
 function carregarPlayer(){
   let ep=JSON.parse(localStorage.getItem("ep"));
   if(!ep) return;
