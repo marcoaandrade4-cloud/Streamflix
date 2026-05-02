@@ -2,24 +2,56 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>StreamFlix</title>
+<title>ADM</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<header class="topo">
-  <div class="logo">🐾 StreamFlix</div>
-  <div class="user" onclick="abrirADM()">👤</div>
-</header>
+<div id="loginBox">
+  <h2>Login ADM</h2>
+  <input id="senha" type="password" placeholder="Senha">
+  <button onclick="login()">Entrar</button>
+</div>
 
-<section class="novo">
-  <h2>Novo episódio!</h2>
-  <p id="epNome"></p>
-  <a id="btnAssistir" class="btn">▶ Assistir</a>
-</section>
+<div id="painel" style="display:none">
 
-<h2>Catálogo</h2>
-<div id="grid" class="grid"></div>
+<h2>Painel ADM</h2>
+
+<h3>Criar</h3>
+<input id="nome" placeholder="Nome">
+<input id="capa" placeholder="Capa URL">
+
+<select id="tipo">
+<option value="serie">Série</option>
+<option value="filme">Filme</option>
+</select>
+
+<button onclick="criar()">Criar</button>
+
+<hr>
+
+<h3>Selecionar</h3>
+<select id="lista" onchange="carregarADM()"></select>
+
+<button onclick="addTemp()">+ Temporada</button>
+
+<div id="conteudo"></div>
+
+<hr>
+
+<h3>Novo Episódio</h3>
+<input id="tituloEp" placeholder="Título">
+<input id="temp" placeholder="Temporada (0)">
+<input id="idioma" placeholder="Idioma">
+<input id="link" placeholder="Link">
+
+<button onclick="addIdioma()">+ idioma</button>
+
+<label><input type="checkbox" id="novo"> Novo episódio</label>
+
+<button onclick="salvarEp()">Salvar</button>
+
+</div>
 
 <script src="script.js"></script>
 </body>
