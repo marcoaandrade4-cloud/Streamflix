@@ -5,7 +5,12 @@
 <title>Stream Flix</title>
 
 <style>
-body { margin:0; background:#000; color:#fff; font-family:Arial; }
+body {
+  margin:0;
+  background:#000;
+  color:#fff;
+  font-family:Arial;
+}
 
 header {
   background:#111;
@@ -68,7 +73,7 @@ import {
   query, orderBy, where, doc, getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// 🔥 SUA CONFIG
+// 🔥 FIREBASE
 const firebaseConfig = {
   apiKey: "AIzaSyBkpOKakidlZ2WVZNBI9oEFHEjs1EqCt78",
   authDomain: "streamflix-62461.firebaseapp.com",
@@ -101,13 +106,10 @@ function player(link) {
 }
 
 // 🔥 NOVO EPISÓDIO
-async function novoEp() {
-  const q = query(
-    collection(db, "episodios"),
-    orderBy("ordem", "desc")
-  );
-
+async function carregarNovo() {
+  const q = query(collection(db, "episodios"), orderBy("ordem", "desc"));
   const snap = await getDocs(q);
+
   if (snap.empty) return;
 
   const docSnap = snap.docs[0];
@@ -122,7 +124,7 @@ async function novoEp() {
   `;
 }
 
-// 🔥 HOME (SÉRIES)
+// 🔥 HOME
 async function home() {
   const snap = await getDocs(collection(db, "series"));
 
@@ -143,7 +145,7 @@ async function home() {
   document.getElementById("conteudo").innerHTML = html;
 }
 
-// 🔥 LISTAR EPISÓDIOS
+// 🔥 SÉRIE
 async function serie(id) {
   const q = query(
     collection(db, "episodios"),
@@ -170,7 +172,7 @@ async function serie(id) {
   document.getElementById("conteudo").innerHTML = html;
 }
 
-// 🔥 PLAYER PAGE
+// 🔥 PLAYER
 async function episodio(id) {
   const snap = await getDoc(doc(db, "episodios", id));
   const ep = snap.data();
@@ -193,7 +195,7 @@ window.abrirEp = (id) => {
 };
 
 // 🔥 INIT
-novoEp();
+carregarNovo();
 
 if (epId) {
   episodio(epId);
