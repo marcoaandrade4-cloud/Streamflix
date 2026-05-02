@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Episódios</title>
+
+<style>
+body{background:#000;color:#fff;font-family:Arial}
+
+.container{padding:10px}
+
+.episodio{
+ display:flex;
+ gap:10px;
+ background:#111;
+ padding:10px;
+ border-radius:15px;
+ margin-bottom:10px;
+}
+
+.episodio img{
+ width:120px;
+ border-radius:10px;
+}
+
+.info h3{margin:0}
+.info p{font-size:12px;color:#aaa}
+</style>
+</head>
+
+<body>
+
+<h2 style="text-align:center">Temporadas</h2>
+
+<div class="container" id="lista"></div>
+
+<script>
+const serie = JSON.parse(localStorage.getItem("serie"));
+
+// pega TEMPORADA 1 por padrão
+let temporada = serie.seasons[0];
+
+temporada.episodes.forEach((ep,i)=>{
+
+ const div=document.createElement("div");
+ div.className="episodio";
+
+ div.innerHTML=`
+  <img src="${ep.thumb || serie.cover}">
+  <div class="info">
+   <h3>${i+1} - ${ep.title}</h3>
+   <p>${ep.desc || "Sem descrição"}</p>
+  </div>
+ `;
+
+ div.onclick=()=>{
+  localStorage.setItem("ep", JSON.stringify(ep));
+  location.href="player.html";
+ };
+
+ lista.appendChild(div);
+});
+</script>
+
+</body>
+</html>
