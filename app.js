@@ -1,62 +1,73 @@
-const path = window.location.pathname;
+const app = document.getElementById("app");
 
-// HOME
-if (path.includes("index.html") || path === "/") {
+// 📦 BANCO DE DADOS SIMPLES
+const data = {
+  temporadas: [
+    {
+      nome: "1ª Temporada",
+      capa: "https://i.imgur.com/1.jpg",
+      episodios: [
+        {
+          nome: "Origens Parte 1",
+          thumb: "https://i.imgur.com/a.jpg",
+          video: "https://www.youtube.com/embed/SEU_VIDEO"
+        },
+        {
+          nome: "Origens Parte 2",
+          thumb: "https://i.imgur.com/b.jpg",
+          video: "https://www.youtube.com/embed/SEU_VIDEO"
+        }
+      ]
+    },
+    {
+      nome: "2ª Temporada",
+      capa: "https://i.imgur.com/2.jpg",
+      episodios: []
+    }
+  ]
+};
+
+// 🏠 HOME
+function home(){
+  app.innerHTML = "<h2>Temporadas</h2><div class='grid' id='grid'></div>";
   const grid = document.getElementById("grid");
 
-  DB.temporadas.forEach(t => {
+  data.temporadas.forEach((t, i) => {
     grid.innerHTML += `
-      <div class="card" onclick="abrirTemp(${t.id})">
+      <div class="card" onclick="abrirTemporada(${i})">
         <img src="${t.capa}">
-        <h3>${t.nome}</h3>
+        <p>${t.nome}</p>
       </div>
     `;
   });
 }
 
-// TEMPORADA
-if (path.includes("temporada.html")) {
-  const params = new URLSearchParams(window.location.search);
-  const id = params.get("t");
+// 📺 ABRIR TEMPORADA
+function abrirTemporada(index){
+  const temp = data.temporadas[index];
 
-  const temporada = DB.temporadas.find(t => t.id == id);
+  app.innerHTML = `
+    <button class="btn" onclick="home()">⬅ Voltar</button>
+    <h2>${temp.nome}</h2>
+    <div class="grid" id="grid"></div>
+  `;
 
-  document.getElementById("titulo").innerText = temporada.nome;
+  const grid = document.getElementById("grid");
 
-  const lista = document.getElementById("episodios");
-
-  temporada.episodios.forEach(ep => {
-    lista.innerHTML += `
-      <div class="episodio" onclick="abrirPlayer(${id}, ${ep.id})">
+  temp.episodios.forEach(ep => {
+    grid.innerHTML += `
+      <div class="card" onclick="abrirPlayer('${ep.nome}','${ep.video}')">
         <img src="${ep.thumb}">
-        <div>
-          <h3>${ep.titulo}</h3>
-          <p>${ep.descricao}</p>
-        </div>
+        <p>${ep.nome}</p>
       </div>
     `;
   });
 }
 
-// PLAYER
-if (path.includes("player.html")) {
-  const params = new URLSearchParams(window.location.search);
-  const t = params.get("t");
-  const e = params.get("e");
-
-  const temp = DB.temporadas.find(x => x.id == t);
-  const ep = temp.episodios.find(x => x.id == e);
-
-  document.getElementById("epTitulo").innerText = ep.titulo;
-  document.getElementById("descricao").innerText = ep.descricao;
-  document.getElementById("video").src = ep.video;
+// ▶ PLAYER
+function abrirPlayer(nome, video){
+  window.location.href = `player.html?nome=${encodeURIComponent(nome)}&video=${encodeURIComponent(video)}`;
 }
 
-// FUNÇÕES
-function abrirTemp(id) {
-  window.location = `temporada.html?t=${id}`;
-}
-
-function abrirPlayer(t, e) {
-  window.location = `player.html?t=${t}&e=${e}`;
-}
+// START
+home();
