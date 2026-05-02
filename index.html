@@ -7,29 +7,35 @@
 
 <style>
 body{margin:0;background:#000;color:#fff;font-family:Arial}
-header{background:#0f0;color:#000;padding:10px;display:flex;justify-content:space-between}
-button{background:#0f0;border:none;padding:6px;border-radius:6px;margin:2px}
+header{background:#00ff00;color:#000;padding:12px;display:flex;justify-content:space-between}
+button{background:#00ff00;border:none;padding:6px;border-radius:6px;margin:3px}
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:10px}
 .card{background:#111;border-radius:10px;overflow:hidden}
-.card img{width:100%;height:200px;object-fit:cover}
+.card img{width:100%;height:220px;object-fit:cover}
 .ep{display:flex;background:#111;margin:10px;border-radius:10px}
-.ep img{width:120px}
+.ep img{width:120px;object-fit:cover}
 .hidden{display:none}
-#admin{background:#111;padding:10px}
 input{width:100%;margin:5px 0;padding:6px}
-video{width:100%}
+iframe,video{width:100%;height:250px;border:none}
+.banner{margin:10px;background:#111;padding:15px;border-radius:10px;text-align:center}
+footer{background:linear-gradient(#000,#00ff00);text-align:center;padding:20px}
 </style>
 </head>
 
 <body>
 
 <header>
-Chat Noir Brasil
+🐾 Chat Noir Brasil
 <div>
 <button onclick="home()">🏠</button>
 <button onclick="adm()">⚙️</button>
 </div>
 </header>
+
+<div class="banner">
+<h3>Novo episódio!</h3>
+<button onclick="player(0)">▶ Assistir</button>
+</div>
 
 <div id="home">
 <h3 style="text-align:center">Temporadas</h3>
@@ -40,27 +46,45 @@ Chat Noir Brasil
 <div id="player" class="hidden"></div>
 <div id="admin" class="hidden"></div>
 
+<footer>
+<h2>Chat Noir Brasil</h2>
+<p>Site de fãs</p>
+</footer>
+
 <script>
 let db = JSON.parse(localStorage.getItem("db")) || {
-  series:[]
+  series:[
+    {
+      nome:"1ª Temporada",
+      img:"https://picsum.photos/300/400",
+      eps:[
+        {
+          nome:"Episódio 1",
+          idiomas:[
+            {nome:"BR",link:"https://www.youtube.com/watch?v=dQw4w9WgXcQ"}
+          ]
+        }
+      ]
+    }
+  ]
 };
 
 let serieAtual=0;
 
-/* ---------- HOME ---------- */
+/* HOME */
 function render(){
   let grid=document.getElementById("grid");
   grid.innerHTML="";
   db.series.forEach((s,i)=>{
     grid.innerHTML+=`
     <div class="card" onclick="lista(${i})">
-      <img src="${s.img || 'https://via.placeholder.com/300'}">
+      <img src="${s.img}" onerror="this.src='https://via.placeholder.com/300x400'">
       <p>${s.nome}</p>
     </div>`;
   });
 }
 
-/* ---------- LISTA ---------- */
+/* LISTA */
 function lista(i){
   serieAtual=i;
   esconder();
@@ -76,24 +100,25 @@ function lista(i){
       <div>
         <h4>${ep.nome}</h4>
         <button onclick="player(${index})">▶</button>
-        <button onclick="editEp(${index})">✏️</button>
-        <button onclick="delEp(${index})">❌</button>
+        ${localStorage.getItem("adm") ? `<button onclick="editEp(${index})">✏️</button>` : ""}
+        ${localStorage.getItem("adm") ? `<button onclick="delEp(${index})">❌</button>` : ""}
       </div>
     </div>`;
   });
 }
 
-/* ---------- PLAYER ---------- */
+/* PLAYER */
 function player(e){
   esconder();
   let ep=db.series[serieAtual].eps[e];
   let div=document.getElementById("player");
   div.classList.remove("hidden");
 
-  div.innerHTML=`<button onclick="lista(${serieAtual})">⬅</button>
+  div.innerHTML=`
+  <button onclick="lista(${serieAtual})">⬅</button>
   <h2>${ep.nome}</h2>
   <div id="idiomas"></div>
-  <video id="v" controls></video>`;
+  <div id="videoBox"></div>`;
 
   let idiomas=document.getElementById("idiomas");
 
@@ -104,23 +129,58 @@ function player(e){
   trocar(ep.idiomas[0]?.link);
 }
 
-function trocar(l){
-  document.getElementById("v").src=l||"";
+/* PLAYER ENGINE */
+function trocar(link){
+  let box=document.getElementById("videoBox");
+
+  if(!link){
+    box.innerHTML="Sem vídeo";
+    return;
+  }
+
+  // YouTube
+  if(link.includes("youtube.com") || link.includes("youtu.be")){
+    let id = link.split("v=")[1] || link.split("/").pop();
+    box.innerHTML=`<iframe src="https://www.youtube.com/embed/${id}" allowfullscreen></iframe>`;
+    return;
+  }
+
+  // Drive
+  if(link.includes("drive.google.com")){
+    let id = link.split("/d/")[1]?.split("/")[0];
+    box.innerHTML=`<iframe src="https://drive.google.com/file/d/${id}/preview"></iframe>`;
+    return;
+  }
+
+  // MP4
+  box.innerHTML=`<video controls><source src="${link}"></video>`;
 }
 
-/* ---------- ADM ---------- */
+/* ADM LOGIN */
 function adm(){
-  let s=prompt("Senha:");
-  if(s!=="1234")return;
+  let s=prompt("Senha ADM:");
+  if(s!=="1234") return alert("Negado");
 
+  localStorage.setItem("adm","on");
+  abrirADM();
+}
+
+function sairADM(){
+  localStorage.removeItem("adm");
+  home();
+}
+
+/* PAINEL */
+function abrirADM(){
   esconder();
   let div=document.getElementById("admin");
   div.classList.remove("hidden");
 
   div.innerHTML=`
   <h2>ADM</h2>
+  <button onclick="sairADM()">Sair</button>
 
-  <h3>Series</h3>
+  <h3>Séries</h3>
   ${db.series.map((s,i)=>`
     <div>
       ${s.nome}
@@ -140,10 +200,10 @@ function adm(){
   `;
 }
 
-/* ---------- SERIE ---------- */
+/* SERIE */
 function addSerie(){
   db.series.push({nome:sNome.value,img:sImg.value,eps:[]});
-  save(); adm();
+  save(); abrirADM();
 }
 
 function editSerie(i){
@@ -169,22 +229,22 @@ function editSerie(i){
   <button onclick="addEp(${i})">Adicionar</button>
 
   <br><br>
-  <button onclick="adm()">⬅</button>
+  <button onclick="abrirADM()">⬅</button>
   `;
 }
 
 function saveSerie(i){
   db.series[i].nome=n.value;
   db.series[i].img=img.value;
-  save(); adm();
+  save(); abrirADM();
 }
 
 function delSerie(i){
   db.series.splice(i,1);
-  save(); adm();
+  save(); abrirADM();
 }
 
-/* ---------- EP ---------- */
+/* EP */
 function addEp(i){
   db.series[i].eps.push({nome:novoEp.value,idiomas:[]});
   save(); editSerie(i);
@@ -208,18 +268,18 @@ function editEp(e){
     </div>
   `).join("")}
 
-  <input id="iNome" placeholder="BR">
-  <input id="iLink" placeholder="link">
+  <input id="iNome" placeholder="Idioma">
+  <input id="iLink" placeholder="Link">
   <button onclick="addIdioma(${e})">Adicionar</button>
 
   <br><br>
-  <button onclick="adm()">⬅</button>
+  <button onclick="abrirADM()">⬅</button>
   `;
 }
 
 function saveEp(e){
   db.series[serieAtual].eps[e].nome=nome.value;
-  save(); adm();
+  save(); abrirADM();
 }
 
 function delEp(i){
@@ -227,7 +287,7 @@ function delEp(i){
   save(); lista(serieAtual);
 }
 
-/* ---------- IDIOMA ---------- */
+/* IDIOMA */
 function addIdioma(e){
   db.series[serieAtual].eps[e].idiomas.push({
     nome:iNome.value,
@@ -241,7 +301,7 @@ function delIdioma(e,i){
   save(); editEp(e);
 }
 
-/* ---------- UTIL ---------- */
+/* UTIL */
 function save(){
   localStorage.setItem("db",JSON.stringify(db));
 }
@@ -257,7 +317,6 @@ function home(){
   location.reload();
 }
 
-/* START */
 render();
 </script>
 
