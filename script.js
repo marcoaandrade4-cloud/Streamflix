@@ -1,12 +1,12 @@
 const senhaADM = "1234";
 let db = JSON.parse(localStorage.getItem("db") || "[]");
 
-/* BOTÃO ADM (CORRIGIDO) */
+/* BOTÃO ADM (FIX) */
 document.addEventListener("DOMContentLoaded", ()=>{
   let btn = document.getElementById("btnADM");
   if(btn){
     btn.addEventListener("click", ()=>{
-      window.location.href = "adm.html";
+      window.location.href = "./adm.html";
     });
   }
 });
@@ -31,6 +31,7 @@ function criarSerie(){
 
 /* LISTA */
 function atualizarLista(){
+  if(!listaSeries) return;
   listaSeries.innerHTML="";
   db.forEach((s,i)=>{
     listaSeries.innerHTML+=`<option value="${i}">${s.nome}</option>`;
@@ -39,7 +40,8 @@ function atualizarLista(){
 
 /* TEMP */
 function addTemp(){
-  db[listaSeries.value].temporadas.push({episodios:[]});
+  let i = listaSeries.value;
+  db[i].temporadas.push({episodios:[]});
   salvar();
 }
 
@@ -50,7 +52,6 @@ function addEp(){
 
   if(!db[i] || !db[i].temporadas[t]) return alert("Temporada inválida");
 
-  // mantém lógica original do novo episódio
   db.forEach(s=>{
     s.temporadas.forEach(t=>{
       t.episodios.forEach(ep=>ep.novo=false);
@@ -100,7 +101,7 @@ function carregarHome(){
 
     btnAssistir.onclick=()=>{
       localStorage.setItem("ep",JSON.stringify(destaque));
-      location.href="player.html";
+      location.href="./player.html";
     };
   }
 }
@@ -108,7 +109,7 @@ function carregarHome(){
 /* SERIE */
 function abrirSerie(i){
   localStorage.setItem("serieIndex",i);
-  location.href="serie.html";
+  location.href="./serie.html";
 }
 
 function carregarSeriePage(){
@@ -130,7 +131,7 @@ function carregarSeriePage(){
 
         e.onclick=()=>{
           localStorage.setItem("ep",JSON.stringify(ep));
-          location.href="player.html";
+          location.href="./player.html";
         };
 
         episodios.appendChild(e);
